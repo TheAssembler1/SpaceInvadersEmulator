@@ -143,8 +143,6 @@ public abstract class Intel8080Base{
     }
 
     protected void checkSetAuxiliaryCarryFlag(Operations operation, int value1, int value2){
-        //FIXME::This method needs to be tested
-        //FIXME::Add the size of the operand to the auxilary carry flag check
         switch(operation){
             case ADD -> {
                 if((((value1 & 0xf) + (value2 & 0xf)) & 0x10) == 0x10)
@@ -153,7 +151,7 @@ public abstract class Intel8080Base{
                     setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL);
             }
             case SUB -> {
-                if((((value1 & 0xf) - (value2 & 0xf)) & 0x10) == 0x10)
+                if((((value1 & 0xF) - (value2 & 0xF)) & 0x10) == 0x10)
                     setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL);
                 else
                     setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL);
@@ -224,6 +222,14 @@ public abstract class Intel8080Base{
             case PARITY_FLAG -> ((registers.f >> Flags.PARITY_FLAG.getBit()) & 1) == 1;
             case CARRY_FLAG -> ((registers.f >> Flags.CARRY_FLAG.getBit()) & 1) == 1;
         };
+    }
+
+    protected byte getHighByte(short value){
+        return (byte) (value >> 8);
+    }
+
+    public short getPCReg(){
+        return registers.pc;
     }
 
     @Override

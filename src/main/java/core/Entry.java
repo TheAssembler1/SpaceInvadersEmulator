@@ -13,5 +13,13 @@ public class Entry {
 
         System.out.println(mmu);
         System.out.println(cpu);
+
+        /*
+        boolean running = true;
+
+        while(running){
+            cpu.executeOpcode(mmu.readOpcode(cpu.getPCReg()));
+        }
+        */
     }
 }

@@ -26,6 +26,9 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x11] = () -> lxiOpcode(Register.DE);
         opcodes[0x21] = () -> lxiOpcode(Register.HL);
         opcodes[0x31] = () -> lxiOpcode(Register.SP);
+        //NOTE::STAX reg | 1 | 7 | - - - - -
+        opcodes[0x02] = () -> staxOpcode(Register.BC);
+        opcodes[0x12] = () -> staxOpcode(Register.DE);
         //NOTE::SHLD a16 | 3 | 16 | - - - -
         opcodes[0x22] = this::shldOpcode;
         //NOTE::STA a16 | 3 | 13 | - - - -
@@ -40,9 +43,24 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x14] = () -> inrOpcode(Register.DE);
         opcodes[0x24] = () -> inrOpcode(Register.HL);
         opcodes[0x34] = () -> inrOpcode(Register.M);
+        opcodes[0x0C] = () -> inrOpcode(Register.C);
+        opcodes[0x1C] = () -> inrOpcode(Register.E);
+        opcodes[0x2C] = () -> inrOpcode(Register.L);
+        opcodes[0x3C] = () -> inrOpcode(Register.A);
+        //NOTE::DCR reg | 1 | 5 | S Z A P -
+        opcodes[0x05] = () -> dcrOpcode(Register.BC);
+        opcodes[0x15] = () -> dcrOpcode(Register.DE);
+        opcodes[0x25] = () -> dcrOpcode(Register.HL);
+        opcodes[0x35] = () -> dcrOpcode(Register.M);
+        opcodes[0x0D] = () -> dcrOpcode(Register.C);
+        opcodes[0x1D] = () -> dcrOpcode(Register.E);
+        opcodes[0x2D] = () -> dcrOpcode(Register.L);
+        opcodes[0x3D] = () -> dcrOpcode(Register.A);
+
     }
 
     public void executeOpcode(short opcode){
+        System.out.println(this);
         opcodes[opcode].execute();
     }
 
@@ -107,44 +125,163 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::INR reg | 1 | 5 | S Z A P -
     private void inrOpcode(Register reg){
+        //TODO::Test this code
         short result = 0;
-        short prevValue = 0;
+        byte prevHighByteValue = 0;
 
         switch(reg){
             case BC -> {
-                prevValue = getRegisterPairValue(Register.BC);
-                result = (short) (prevValue + 1);
+                result = (short) (getRegisterPairValue(Register.BC) + 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = registers.b;
+
+                //NOTE::Setting appropriate flags
                 setRegisterPairValue(Register.BC, result);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, prevHighByteValue, registers.b);
+                checkSetSignFlag(ValueSizes.SHORT, result);
             }
             case DE -> {
-                prevValue = getRegisterPairValue(Register.DE);
-                result = (short) (prevValue + 1);
+                result = (short) (getRegisterPairValue(Register.DE) + 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = registers.d;
+
+                //NOTE::Setting appropriate flags
                 setRegisterPairValue(Register.DE, result);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, prevHighByteValue, registers.d);
+                checkSetSignFlag(ValueSizes.SHORT, result);
             }
             case HL -> {
-                prevValue = getRegisterPairValue(Register.HL);
-                result = (short) (prevValue + 1);
+                result = (short) (getRegisterPairValue(Register.HL) + 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = registers.h;
+
+                //NOTE::Setting appropriate flags
                 setRegisterPairValue(Register.HL, result);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, prevHighByteValue, registers.h);
+                checkSetSignFlag(ValueSizes.SHORT, result);
             }
             case M -> {
-                prevValue = mmu.readData(getRegisterPairValue(Register.HL));
-                result = (short) (prevValue + 1);
+                result = (short) (mmu.readData(getRegisterPairValue(Register.HL)) + 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = getHighByte(mmu.readData(getRegisterPairValue(Register.HL)));
+
+                //NOTE::Setting appropriate flags
                 mmu.setData(result, getRegisterPairValue(Register.HL));
+                checkSetAuxiliaryCarryFlag(Operations.ADD, prevHighByteValue, getHighByte(result));
+                checkSetSignFlag(ValueSizes.SHORT, result);
             }
             case C -> {
-                prevValue = registers.c;
-                result = (short) (prevValue + 1);
-                registers.c = (byte) result;
+                result = (short) (registers.c + 1);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, registers.c++, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+            case E -> {
+                result = (short) (registers.e + 1);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, registers.e++, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+            case L -> {
+                result = (short) (registers.l + 1);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, registers.l++, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+            case A -> {
+                result = (short) (registers.a + 1);
+                checkSetAuxiliaryCarryFlag(Operations.ADD, registers.a++, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
             }
         }
 
-        checkSetSignFlag(ValueSizes.SHORT, result);
         checkSetZeroFlag(result);
-        //FIXME::Add the size of the operand to the auxilary carry flag check
-        checkSetAuxiliaryCarryFlag(Operations.ADD, prevValue, result);
         checkSetParityFlag(result);
+
+        registers.pc++;
+        cycles += 5;
     }
 
+    //NOTE::DCR reg | 1 | 5 | S Z A P -
+    private void dcrOpcode(Register reg){
+        //TODO::Test this code
+        short result = 0;
+        byte prevHighByteValue = 0;
+
+        switch(reg){
+            case BC -> {
+                result = (short) (getRegisterPairValue(Register.BC) - 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = registers.b;
+
+                //NOTE::Setting appropriate flags
+                setRegisterPairValue(Register.BC, result);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, prevHighByteValue, registers.b);
+                checkSetSignFlag(ValueSizes.SHORT, result);
+            }
+            case DE -> {
+                result = (short) (getRegisterPairValue(Register.DE) - 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = registers.d;
+
+                //NOTE::Setting appropriate flags
+                setRegisterPairValue(Register.DE, result);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, prevHighByteValue, registers.d);
+                checkSetSignFlag(ValueSizes.SHORT, result);
+            }
+            case HL -> {
+                result = (short) (getRegisterPairValue(Register.HL) - 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = registers.h;
+
+                //NOTE::Setting appropriate flags
+                setRegisterPairValue(Register.HL, result);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, prevHighByteValue, registers.h);
+                checkSetSignFlag(ValueSizes.SHORT, result);
+            }
+            case M -> {
+                result = (short) (mmu.readData(getRegisterPairValue(Register.HL)) - 1);
+
+                //NOTE::Getting value for auxiliary flag check
+                prevHighByteValue = getHighByte(mmu.readData(getRegisterPairValue(Register.HL)));
+
+                //NOTE::Setting appropriate flags
+                mmu.setData(result, getRegisterPairValue(Register.HL));
+                checkSetAuxiliaryCarryFlag(Operations.SUB, prevHighByteValue, getHighByte(result));
+                checkSetSignFlag(ValueSizes.SHORT, result);
+            }
+            case C -> {
+                result = (short) (registers.c - 1);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, registers.c--, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+            case E -> {
+                result = (short) (registers.e - 1);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, registers.e--, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+            case L -> {
+                result = (short) (registers.l - 1);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, registers.l--, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+            case A -> {
+                result = (short) (registers.a - 1);
+                checkSetAuxiliaryCarryFlag(Operations.SUB, registers.a--, result);
+                checkSetSignFlag(ValueSizes.BYTE, result);
+            }
+        }
+
+        checkSetZeroFlag(result);
+        checkSetParityFlag(result);
+
+        registers.pc++;
+        cycles += 5;
+    }
 
     @Override
     public String toString(){
