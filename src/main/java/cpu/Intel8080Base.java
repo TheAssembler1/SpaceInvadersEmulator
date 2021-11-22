@@ -51,6 +51,10 @@ public abstract class Intel8080Base{
         ADD, SUB
     }
 
+    protected enum ValueSizes {
+        SHORT, BYTE
+    }
+
     protected Registers registers = new Registers();
     protected long cycles = 0;
     protected Mmu mmu;
@@ -107,7 +111,21 @@ public abstract class Intel8080Base{
         return bb.getShort(0);
     }
 
-    protected void checkSetSignFlag(){
+    protected void checkSetSignFlag(ValueSizes valueSize, short value){
+        switch(valueSize){
+            case BYTE -> {
+                if((((byte)value >> Flags.SIGN_FLAG.getBit()) & 1) == 1)
+                    setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
+                else
+                    setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
+            }
+            case SHORT -> {
+                if(((value >> ((Flags.SIGN_FLAG.getBit()) * 2) + 1) & 1) == 1)
+                    setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
+                else
+                    setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
+            }
+        }
         if(((registers.f >> Flags.SIGN_FLAG.getBit()) & 1) == 1)
             setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
         else
