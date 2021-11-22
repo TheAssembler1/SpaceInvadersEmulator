@@ -117,22 +117,18 @@ public abstract class Intel8080Base{
         //FIXME::This method needs to be tested
         switch(valueSize){
             case BYTE -> {
-                if((((byte)value >> Flags.SIGN_FLAG.getBit()) & 1) == 1)
+                if((((byte)value >> 0x7) & 1) == 1)
                     setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
                 else
                     setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
             }
             case SHORT -> {
-                if(((value >> ((Flags.SIGN_FLAG.getBit()) * 2) + 1) & 1) == 1)
+                if(((value >> 0xF) & 1) == 1)
                     setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
                 else
                     setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
             }
         }
-        if(((registers.f >> Flags.SIGN_FLAG.getBit()) & 1) == 1)
-            setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
-        else
-            setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
     }
 
     protected void checkSetZeroFlag(short value){
@@ -145,7 +141,7 @@ public abstract class Intel8080Base{
     protected void checkSetAuxiliaryCarryFlag(Operations operation, int value1, int value2){
         switch(operation){
             case ADD -> {
-                if((((value1 & 0xf) + (value2 & 0xf)) & 0x10) == 0x10)
+                if((((value1 & 0xF) + (value2 & 0xF)) & 0x10) == 0x10)
                     setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL);
                 else
                     setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL);
