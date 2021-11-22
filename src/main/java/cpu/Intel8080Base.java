@@ -22,8 +22,10 @@ public abstract class Intel8080Base{
         short pc;
     }
 
-    protected enum RegisterPair {
-        AF, BC, DE, HL
+    //NOTE::M stands for memory; needed for opcodes
+    protected enum Register {
+        AF, BC, DE, HL, SP,
+        M, C, E , L, A
     }
 
     protected enum Flags{
@@ -66,7 +68,7 @@ public abstract class Intel8080Base{
         registers.f = 0b00000010;
     }
 
-    protected void setRegisterPairValue(RegisterPair regPair, short value) {
+    protected void setRegisterPairValue(Register regPair, short value) {
         switch (regPair) {
             case AF -> {
                 registers.a = (byte) (value >> 8);
@@ -87,7 +89,7 @@ public abstract class Intel8080Base{
         }
     }
 
-    protected short getRegisterPairValue(RegisterPair regPair) {
+    protected short getRegisterPairValue(Register regPair) {
         ByteBuffer bb = ByteBuffer.allocate(2);
 
         switch (regPair) {
@@ -112,6 +114,7 @@ public abstract class Intel8080Base{
     }
 
     protected void checkSetSignFlag(ValueSizes valueSize, short value){
+        //FIXME::This method needs to be tested
         switch(valueSize){
             case BYTE -> {
                 if((((byte)value >> Flags.SIGN_FLAG.getBit()) & 1) == 1)
@@ -140,6 +143,8 @@ public abstract class Intel8080Base{
     }
 
     protected void checkSetAuxiliaryCarryFlag(Operations operation, int value1, int value2){
+        //FIXME::This method needs to be tested
+        //FIXME::Add the size of the operand to the auxilary carry flag check
         switch(operation){
             case ADD -> {
                 if((((value1 & 0xf) + (value2 & 0xf)) & 0x10) == 0x10)
@@ -157,6 +162,7 @@ public abstract class Intel8080Base{
     }
 
     protected void checkSetParityFlag(short value){
+        //FIXME::This method needs to be tested
         int parity = 0;
         while(value >> 1 != 0){
             parity = (value & 1)^((value >> 1) & 1);
@@ -170,6 +176,7 @@ public abstract class Intel8080Base{
     }
 
     protected void checkSetCarryFlag(Operations operation, int value1, int value2){
+        //FIXME::This method needs to be tested
         switch(operation){
             case ADD -> {
                 if(value1 + value2 > 0xFFFF)
@@ -222,10 +229,10 @@ public abstract class Intel8080Base{
     @Override
     public String toString(){
         String string = "Registers:\n";
-        string = string.concat(String.format("AF: %x\n", getRegisterPairValue(RegisterPair.AF)));
-        string = string.concat(String.format("BC: %x\n", getRegisterPairValue(RegisterPair.BC)));
-        string = string.concat(String.format("DE: %x\n", getRegisterPairValue(RegisterPair.DE)));
-        string = string.concat(String.format("HL: %x\n", getRegisterPairValue(RegisterPair.HL)));
+        string = string.concat(String.format("AF: %x\n", getRegisterPairValue(Register.AF)));
+        string = string.concat(String.format("BC: %x\n", getRegisterPairValue(Register.BC)));
+        string = string.concat(String.format("DE: %x\n", getRegisterPairValue(Register.DE)));
+        string = string.concat(String.format("HL: %x\n", getRegisterPairValue(Register.HL)));
         string = string.concat(String.format("SP: %x\n", registers.sp));
         string = string.concat(String.format("PC: %x\n\n", registers.pc));
 
