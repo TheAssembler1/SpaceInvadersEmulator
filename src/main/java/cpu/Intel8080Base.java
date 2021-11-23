@@ -49,11 +49,11 @@ public abstract class Intel8080Base{
         TRUE, FALSE, NULL
     }
 
-    protected enum Operations{
+    protected enum Operation{
         ADD, SUB
     }
 
-    protected enum ValueSizes {
+    protected enum ValueSize {
         SHORT, BYTE
     }
 
@@ -68,7 +68,7 @@ public abstract class Intel8080Base{
         registers.f = 0b00000010;
     }
 
-    protected void setRegisterPairValue(Register regPair, short value) {
+    private void setRegisterPairValue(Register regPair, short value) {
         switch (regPair) {
             case AF -> {
                 registers.a = (byte) (value >> 8);
@@ -89,7 +89,7 @@ public abstract class Intel8080Base{
         }
     }
 
-    protected short getRegisterPairValue(Register regPair) {
+    private short getRegisterPairValue(Register regPair) {
         ByteBuffer bb = ByteBuffer.allocate(2);
 
         switch (regPair) {
@@ -113,7 +113,7 @@ public abstract class Intel8080Base{
         return bb.getShort(0);
     }
 
-    protected void checkSetSignFlag(ValueSizes valueSize, short value){
+    protected void checkSetSignFlag(ValueSize valueSize, short value){
         //FIXME::This method needs to be tested
         switch(valueSize){
             case BYTE -> {
@@ -138,7 +138,7 @@ public abstract class Intel8080Base{
             setFlag(FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
     }
 
-    protected void checkSetAuxiliaryCarryFlag(Operations operation, int value1, int value2){
+    protected void checkSetAuxiliaryCarryFlag(Operation operation, byte value1, byte value2){
         switch(operation){
             case ADD -> {
                 if((((value1 & 0xF) + (value2 & 0xF)) & 0x10) == 0x10)
@@ -169,7 +169,7 @@ public abstract class Intel8080Base{
             setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL);
     }
 
-    protected void checkSetCarryFlag(Operations operation, int value1, int value2){
+    protected void checkSetCarryFlag(Operation operation, int value1, int value2){
         //FIXME::This method needs to be tested
         switch(operation){
             case ADD -> {
@@ -222,6 +222,39 @@ public abstract class Intel8080Base{
 
     protected byte getHighByte(short value){
         return (byte) (value >> 8);
+    }
+
+    protected short getCorrespondingRegisterValue(Register reg){
+        return switch(reg){
+            case AF -> getRegisterPairValue(Register.AF);
+            case BC -> getRegisterPairValue(Register.BC);
+            case DE -> getRegisterPairValue(Register.DE);
+            case HL -> getRegisterPairValue(Register.HL);
+            case SP -> getRegisterPairValue(Register.SP);
+
+            //NOTE::If we get this return then there is an error
+            case M -> (short) 0;
+
+            case C -> registers.c;
+            case E -> registers.e;
+            case L -> registers.l;
+            case A -> registers.a;
+        };
+    }
+
+    protected void setCorrespondingRegisterValue(Register reg, short value){
+        switch(reg){
+            case AF -> setRegisterPairValue(Register.AF, value);
+            case BC -> setRegisterPairValue(Register.BC, value);
+            case DE -> setRegisterPairValue(Register.DE, value);
+            case HL -> setRegisterPairValue(Register.HL, value);
+            case SP -> setRegisterPairValue(Register.SP, value);
+
+            case C -> registers.c = (byte) value;
+            case E -> registers.e = (byte) value;
+            case L -> registers.l = (byte) value;
+            case A -> registers.a = (byte) value;
+        }
     }
 
     public short getPCReg(){

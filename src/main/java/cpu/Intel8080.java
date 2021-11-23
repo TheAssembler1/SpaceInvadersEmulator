@@ -39,23 +39,23 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x23] = () -> inxOpcode(Register.HL);
         opcodes[0x33] = () -> inxOpcode(Register.SP);
         //NOTE::INR reg | 1 | 5 | S Z A P -
-        opcodes[0x04] = () -> inrOpcode(Register.BC);
-        opcodes[0x14] = () -> inrOpcode(Register.DE);
-        opcodes[0x24] = () -> inrOpcode(Register.HL);
-        opcodes[0x34] = () -> inrOpcode(Register.M);
-        opcodes[0x0C] = () -> inrOpcode(Register.C);
-        opcodes[0x1C] = () -> inrOpcode(Register.E);
-        opcodes[0x2C] = () -> inrOpcode(Register.L);
-        opcodes[0x3C] = () -> inrOpcode(Register.A);
+        opcodes[0x04] = () -> inrOpcode(ValueSize.SHORT, Register.BC);
+        opcodes[0x14] = () -> inrOpcode(ValueSize.SHORT, Register.DE);
+        opcodes[0x24] = () -> inrOpcode(ValueSize.SHORT, Register.HL);
+        opcodes[0x34] = () -> inrOpcode(ValueSize.SHORT, Register.M);
+        opcodes[0x0C] = () -> inrOpcode(ValueSize.BYTE, Register.C);
+        opcodes[0x1C] = () -> inrOpcode(ValueSize.BYTE, Register.E);
+        opcodes[0x2C] = () -> inrOpcode(ValueSize.BYTE, Register.L);
+        opcodes[0x3C] = () -> inrOpcode(ValueSize.BYTE, Register.A);
         //NOTE::DCR reg | 1 | 5 | S Z A P -
-        opcodes[0x05] = () -> dcrOpcode(Register.BC);
-        opcodes[0x15] = () -> dcrOpcode(Register.DE);
-        opcodes[0x25] = () -> dcrOpcode(Register.HL);
-        opcodes[0x35] = () -> dcrOpcode(Register.M);
-        opcodes[0x0D] = () -> dcrOpcode(Register.C);
-        opcodes[0x1D] = () -> dcrOpcode(Register.E);
-        opcodes[0x2D] = () -> dcrOpcode(Register.L);
-        opcodes[0x3D] = () -> dcrOpcode(Register.A);
+        opcodes[0x05] = () -> dcrOpcode(ValueSize.SHORT, Register.BC);
+        opcodes[0x15] = () -> dcrOpcode(ValueSize.SHORT, Register.DE);
+        opcodes[0x25] = () -> dcrOpcode(ValueSize.SHORT, Register.HL);
+        opcodes[0x35] = () -> dcrOpcode(ValueSize.SHORT, Register.M);
+        opcodes[0x0D] = () -> dcrOpcode(ValueSize.BYTE, Register.C);
+        opcodes[0x1D] = () -> dcrOpcode(ValueSize.BYTE, Register.E);
+        opcodes[0x2D] = () -> dcrOpcode(ValueSize.BYTE, Register.L);
+        opcodes[0x3D] = () -> dcrOpcode(ValueSize.BYTE, Register.A);
 
     }
 
@@ -71,7 +71,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::LXI reg, d16 | 3 | 10 | - - - - -
     private void lxiOpcode(Register reg){
-        setRegisterPairValue(reg, mmu.readData((short) (registers.pc + 1)));
+        setCorrespondingRegisterValue(reg, mmu.readData((short) (registers.pc + 1)));
 
         registers.pc += 2;
         cycles += 10;
@@ -79,7 +79,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::STAX reg | 1 | 7 | - - - - -
     private void staxOpcode(Register reg) {
-        mmu.setData(registers.a, getRegisterPairValue(reg));
+        mmu.setData(registers.a, getCorrespondingRegisterValue(reg));
 
         registers.pc++;
         cycles += 7;
@@ -87,7 +87,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::SHLD a16 | 3 | 16 | - - - -
     private void shldOpcode(){
-        mmu.setData(getRegisterPairValue(Register.HL), mmu.readData((short) (registers.pc + 1)));
+        mmu.setData(getCorrespondingRegisterValue(Register.HL), mmu.readData((short) (registers.pc + 1)));
 
         registers.pc += 3;
         cycles += 16;
@@ -106,20 +106,98 @@ public class Intel8080 extends Intel8080Base{
         if(reg != Register.SP)
             registers.sp++;
         else
-            setRegisterPairValue(reg, (short) (getRegisterPairValue(reg) + 1));
+            setCorrespondingRegisterValue(reg, (short) (getCorrespondingRegisterValue(reg) + 1));
 
         registers.pc++;
         cycles += 5;
     }
 
     //NOTE::INR reg | 1 | 5 | S Z A P -
-    private void inrOpcode(Register reg){
+    private void inrOpcode(ValueSize valueSize, Register reg){
+        short result = 0;
+        byte auxValue1 = 0;
+        byte auxValue2 = 0;
+
+        switch(valueSize){
+            case BYTE -> {
+                if(reg == Register.M) {
+                    result = (short) (mmu.readData(getCorrespondingRegisterValue(Register.HL)) + 1);
+
+                    auxValue1 = getHighByte(mmu.readData(getCorrespondingRegisterValue(Register.HL)));
+                    auxValue2 = getHighByte(result);
+
+                    mmu.setData(result, getCorrespondingRegisterValue(Register.HL));
+                }
+                else {
+                    result = (short) (getCorrespondingRegisterValue(reg) + 1);
+
+                    auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
+                    auxValue2 = getHighByte(result);
+
+                    setCorrespondingRegisterValue(reg, result);
+                }
+            }
+            case SHORT -> {
+                    result = (short) (getCorrespondingRegisterValue(reg) + 1);
+
+                    auxValue1 = (byte) getCorrespondingRegisterValue(reg);
+                    auxValue2 = (byte) result;
+
+                    setCorrespondingRegisterValue(reg, result);
+            }
+        }
+
+        checkSetSignFlag(valueSize, result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.ADD, auxValue1, auxValue2);
+        checkSetParityFlag(result);
+
         registers.pc++;
         cycles += 5;
     }
 
     //NOTE::DCR reg | 1 | 5 | S Z A P -
-    private void dcrOpcode(Register reg) {
+    private void dcrOpcode(ValueSize valueSize, Register reg) {
+        short result = 0;
+        byte auxValue1 = 0;
+        byte auxValue2 = 0;
+
+        switch(valueSize){
+            case BYTE -> {
+                if(reg == Register.M) {
+                    result = (short) (mmu.readData(getCorrespondingRegisterValue(Register.HL)) - 1);
+
+                    auxValue1 = getHighByte(mmu.readData(getCorrespondingRegisterValue(Register.HL)));
+                    auxValue2 = getHighByte(result);
+
+                    mmu.setData(result, getCorrespondingRegisterValue(Register.HL));
+                }
+                else {
+                    result = (short) (getCorrespondingRegisterValue(reg) - 1);
+
+                    auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
+                    auxValue2 = getHighByte(result);
+
+                    setCorrespondingRegisterValue(reg, result);
+                }
+            }
+            case SHORT -> {
+                result = (short) (getCorrespondingRegisterValue(reg) - 1);
+
+                auxValue1 = (byte) getCorrespondingRegisterValue(reg);
+                auxValue2 = (byte) result;
+
+                setCorrespondingRegisterValue(reg, result);
+            }
+        }
+
+        checkSetSignFlag(valueSize, result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.SUB, auxValue1, auxValue2);
+        checkSetParityFlag(result);
+
+        registers.pc++;
+        cycles += 5;
     }
 
     @Override
