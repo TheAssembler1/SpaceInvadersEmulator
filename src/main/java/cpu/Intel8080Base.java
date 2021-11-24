@@ -5,7 +5,7 @@ import memory.Mmu;
 import java.nio.ByteBuffer;
 
 public abstract class Intel8080Base{
-    protected static class Registers {
+    private static class Registers {
         byte a;
         byte f;
 
@@ -24,8 +24,10 @@ public abstract class Intel8080Base{
 
     //NOTE::M stands for memory; needed for opcodes
     protected enum Register {
-        AF, BC, DE, HL, SP,
-        M, C, E , L, A
+        AF, BC, DE, HL,
+        A, F, B, C, D, E, H, L,
+        SP, PC,
+        M
     }
 
     protected enum Flags{
@@ -224,36 +226,48 @@ public abstract class Intel8080Base{
         return (byte) (value >> 8);
     }
 
-    protected short getCorrespondingRegisterValue(Register reg){
+    protected short getRegisterValue(Register reg){
         return switch(reg){
             case AF -> getRegisterPairValue(Register.AF);
             case BC -> getRegisterPairValue(Register.BC);
             case DE -> getRegisterPairValue(Register.DE);
             case HL -> getRegisterPairValue(Register.HL);
-            case SP -> getRegisterPairValue(Register.SP);
 
             //NOTE::If we get this return then there is an error
             case M -> (short) 0;
 
-            case C -> registers.c;
-            case E -> registers.e;
-            case L -> registers.l;
             case A -> registers.a;
+            case F -> registers.f;
+            case B -> registers.b;
+            case C -> registers.c;
+            case D -> registers.d;
+            case E -> registers.e;
+            case H -> registers.h;
+            case L -> registers.l;
+
+            case SP -> registers.sp;
+            case PC -> registers.pc;
         };
     }
 
-    protected void setCorrespondingRegisterValue(Register reg, short value){
+    protected void setRegisterValue(Register reg, short value){
         switch(reg){
             case AF -> setRegisterPairValue(Register.AF, value);
             case BC -> setRegisterPairValue(Register.BC, value);
             case DE -> setRegisterPairValue(Register.DE, value);
             case HL -> setRegisterPairValue(Register.HL, value);
-            case SP -> setRegisterPairValue(Register.SP, value);
 
-            case C -> registers.c = (byte) value;
-            case E -> registers.e = (byte) value;
-            case L -> registers.l = (byte) value;
-            case A -> registers.a = (byte) value;
+            case A -> registers.a = (byte)value;
+            case F -> registers.f = (byte)value;
+            case B -> registers.b = (byte)value;
+            case C -> registers.c = (byte)value;
+            case D -> registers.d = (byte)value;
+            case E -> registers.e = (byte)value;
+            case H -> registers.h = (byte)value;
+            case L -> registers.l = (byte)value;
+
+            case SP -> registers.sp = value;
+            case PC -> registers.pc = value;
         }
     }
 

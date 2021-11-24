@@ -1,7 +1,6 @@
 package memory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -26,14 +25,14 @@ public class Mmu {
     }
 
     //NOTE::Set 16 bits of data to memory formatted with little endianness
-    public void setData(short value, short address) {
+    public void setData(short address, short value) {
         memory.putShort(address, value);
     }
 
     //NOTE::Reading opcode at current pc
     public byte readOpcode(short address){ return (byte)memory.getChar(address); }
 
-    //NOTE::Reads the Space Invaders rom files
+    //NOTE::Reads the Space Invaders' rom files
     //NOTE::Memory layout of the game
     /*
      * invaders.h 0x0000-0x07FF

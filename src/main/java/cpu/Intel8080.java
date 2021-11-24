@@ -88,50 +88,50 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::NOP | 1 | 4 | - - - - -
     private void nopOpcode(){
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 4;
     }
 
     //NOTE::LXI reg, d16 | 3 | 10 | - - - - -
     private void lxiOpcode(Register reg){
-        setCorrespondingRegisterValue(reg, mmu.readShortData((short) (registers.pc + 1)));
+        setRegisterValue(reg, mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
 
-        registers.pc += 2;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
         cycles += 10;
     }
 
     //NOTE::STAX reg | 1 | 7 | - - - - -
     private void staxOpcode(Register reg) {
-        mmu.setData(registers.a, getCorrespondingRegisterValue(reg));
+        mmu.setData(getRegisterValue(Register.HL), getRegisterValue(reg));
 
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 7;
     }
 
     //NOTE::SHLD a16 | 3 | 16 | - - - - -
     private void shldOpcode(){
-        mmu.setData(getCorrespondingRegisterValue(Register.HL), mmu.readShortData((short) (registers.pc + 1)));
+        mmu.setData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)), getRegisterValue(Register.HL));
 
-        registers.pc += 3;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
         cycles += 16;
     }
 
     //NOTE::STA a16 | 3 | 13 | - - - - -
     private void staOpcode(){
-        mmu.setData(registers.a, mmu.readShortData((short) (registers.pc + 1)));
+        mmu.setData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)), getRegisterValue(Register.A));
 
-        registers.pc += 3;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
         cycles += 16;
     }
 
     //NOTE::INX reg | 1 | 5 | - - - - -
     private void inxOpcode(Register reg){
-        if(reg != Register.SP)
-            registers.sp++;
+        if(reg == Register.SP)
+            setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 1));
         else
-            setCorrespondingRegisterValue(reg, (short) (getCorrespondingRegisterValue(reg) + 1));
+            setRegisterValue(reg, (short) (getRegisterValue(reg) + 1));
 
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 5;
     }
 
@@ -143,29 +143,29 @@ public class Intel8080 extends Intel8080Base{
 
         switch(valueSize){
             case BYTE -> {
-                result = (short) (getCorrespondingRegisterValue(reg) + 1);
+                result = (short) (getRegisterValue(reg) + 1);
 
-                auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
+                auxValue1 = getHighByte(getRegisterValue(reg));
                 auxValue2 = getHighByte(result);
 
-                setCorrespondingRegisterValue(reg, result);
+                setRegisterValue(reg, result);
             }
             case SHORT -> {
                 if(reg == Register.M) {
-                    result = (short) (mmu.readShortData(getCorrespondingRegisterValue(Register.HL)) + 1);
+                    result = (short) (mmu.readShortData(getRegisterValue(Register.HL)) + 1);
 
-                    auxValue1 = getHighByte(mmu.readShortData(getCorrespondingRegisterValue(Register.HL)));
+                    auxValue1 = getHighByte(mmu.readShortData(getRegisterValue(Register.HL)));
                     auxValue2 = getHighByte(result);
 
-                    mmu.setData(result, getCorrespondingRegisterValue(Register.HL));
+                    mmu.setData(getRegisterValue(Register.HL), result);
                     cycles += 5;
                 }else {
-                    result = (short) (getCorrespondingRegisterValue(reg) + 1);
+                    result = (short) (getRegisterValue(reg) + 1);
 
-                    auxValue1 = (byte) getCorrespondingRegisterValue(reg);
+                    auxValue1 = (byte) getRegisterValue(reg);
                     auxValue2 = (byte) result;
 
-                    setCorrespondingRegisterValue(reg, result);
+                    setRegisterValue(reg, result);
                 }
             }
         }
@@ -175,7 +175,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetAuxiliaryCarryFlag(Operation.ADD, auxValue1, auxValue2);
         checkSetParityFlag(result);
 
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 5;
     }
 
@@ -187,29 +187,29 @@ public class Intel8080 extends Intel8080Base{
 
         switch(valueSize){
             case BYTE -> {
-                result = (short) (getCorrespondingRegisterValue(reg) - 1);
+                result = (short) (getRegisterValue(reg) - 1);
 
-                auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
+                auxValue1 = getHighByte(getRegisterValue(reg));
                 auxValue2 = getHighByte(result);
 
-                setCorrespondingRegisterValue(reg, result);
+                setRegisterValue(reg, result);
             }
             case SHORT -> {
                 if(reg == Register.M) {
-                    result = (short) (mmu.readShortData(getCorrespondingRegisterValue(Register.HL)) - 1);
+                    result = (short) (mmu.readShortData(getRegisterValue(Register.HL)) - 1);
 
-                    auxValue1 = getHighByte(mmu.readShortData(getCorrespondingRegisterValue(Register.HL)));
+                    auxValue1 = getHighByte(mmu.readShortData(getRegisterValue(Register.HL)));
                     auxValue2 = getHighByte(result);
 
-                    mmu.setData(result, getCorrespondingRegisterValue(Register.HL));
+                    mmu.setData(getRegisterValue(Register.HL), result);
                     cycles += 5;
                 }else {
-                    result = (short) (getCorrespondingRegisterValue(reg) - 1);
+                    result = (short) (getRegisterValue(reg) - 1);
 
-                    auxValue1 = (byte) getCorrespondingRegisterValue(reg);
+                    auxValue1 = (byte) getRegisterValue(reg);
                     auxValue2 = (byte) result;
 
-                    setCorrespondingRegisterValue(reg, result);
+                    setRegisterValue(reg, result);
                 }
             }
         }
@@ -219,39 +219,39 @@ public class Intel8080 extends Intel8080Base{
         checkSetAuxiliaryCarryFlag(Operation.SUB, auxValue1, auxValue2);
         checkSetParityFlag(result);
 
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 5;
     }
 
     //NOTE::HLT | 1 | 7 | - - - - -
     private void hltOpcode(){
         cycles += 7;
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
     //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
     private void movOpcode(Register reg1, Register reg2){
         if(reg2 == Register.M){
-            setCorrespondingRegisterValue(reg1, mmu.readShortData(getCorrespondingRegisterValue(Register.HL)));
+            setRegisterValue(reg1, mmu.readShortData(getRegisterValue(Register.HL)));
             cycles += 2;
         }else
-            setCorrespondingRegisterValue(reg1, getCorrespondingRegisterValue(reg2));
+            setRegisterValue(reg1, getRegisterValue(reg2));
 
         cycles += 5;
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
 
     //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
     void mviOpcode(Register reg){
         if(reg == Register.M) {
-            mmu.setData(mmu.readByteData((byte) (registers.pc + 1)), getCorrespondingRegisterValue(Register.HL));
+            mmu.setData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
             cycles += 3;
         }
         else
-            setCorrespondingRegisterValue(reg, mmu.readByteData((byte) (registers.pc + 1)));
+            setRegisterValue(reg, mmu.readByteData((byte) (getRegisterValue(Register.PC) + 1)));
 
-        registers.pc++;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 7;
     }
 
