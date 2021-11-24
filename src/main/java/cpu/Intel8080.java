@@ -3,7 +3,8 @@ package cpu;
 import memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
-    //TODO::rewrite opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
+    //NOTE::CHECK opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
+    //NOTE::CHECK opcodes with this spreadsheet https://pastraiser.com/cpu/i8080/i8080_opcodes.html
 
     private interface Opcode{
         void execute();
