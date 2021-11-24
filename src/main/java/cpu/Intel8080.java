@@ -160,14 +160,14 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x87] = () -> addOpcode(Register.A);
 
         //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x90] = () -> addOpcode(Register.B);
-        opcodes[0x91] = () -> addOpcode(Register.C);
-        opcodes[0x92] = () -> addOpcode(Register.D);
-        opcodes[0x93] = () -> addOpcode(Register.E);
-        opcodes[0x94] = () -> addOpcode(Register.H);
-        opcodes[0x95] = () -> addOpcode(Register.L);
-        opcodes[0x96] = () -> addOpcode(Register.M);
-        opcodes[0x97] = () -> addOpcode(Register.A);
+        opcodes[0x90] = () -> subOpcode(Register.B);
+        opcodes[0x91] = () -> subOpcode(Register.C);
+        opcodes[0x92] = () -> subOpcode(Register.D);
+        opcodes[0x93] = () -> subOpcode(Register.E);
+        opcodes[0x94] = () -> subOpcode(Register.H);
+        opcodes[0x95] = () -> subOpcode(Register.L);
+        opcodes[0x96] = () -> subOpcode(Register.M);
+        opcodes[0x97] = () -> subOpcode(Register.A);
 
     }
 
