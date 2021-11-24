@@ -15,12 +15,17 @@ public class Mmu {
         memory.order(ByteOrder.LITTLE_ENDIAN);
     }
 
-    //NOTE::Read 16 bits with memory formatted with little endianness
-    public short readData(short address){
+    //NOTE::Read 16 bits with data formatted with little endianness
+    public short readShortData(short address){
         return memory.getShort(address);
     }
 
-    //NOTE::Set 16 bits to memory formatted with little endianness
+    //NOTE::Read 8 bits of data
+    public byte readByteData(short address){
+        return memory.get(address);
+    }
+
+    //NOTE::Set 16 bits of data to memory formatted with little endianness
     public void setData(short value, short address) {
         memory.putShort(address, value);
     }

@@ -1,7 +1,6 @@
 package core;
 
 import cpu.Intel8080;
-import cpu.Intel8080Base;
 import memory.Mmu;
 
 public class Entry {
@@ -13,6 +12,8 @@ public class Entry {
 
         System.out.println(mmu);
         System.out.println(cpu);
+
+
 
         /*
         boolean running = true;

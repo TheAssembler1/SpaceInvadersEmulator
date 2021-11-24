@@ -3,6 +3,10 @@ package cpu;
 import memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
+    //TODO::Make parameters for methods that take in (value, address) be in that order
+    //TODO::Currently on mov were setting the byte to the memory as a short. Check Correctness
+    //TODO::rewrite opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
+
     private interface Opcode{
         void execute();
     }
@@ -56,7 +60,26 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x1D] = () -> dcrOpcode(ValueSize.BYTE, Register.E);
         opcodes[0x2D] = () -> dcrOpcode(ValueSize.BYTE, Register.L);
         opcodes[0x3D] = () -> dcrOpcode(ValueSize.BYTE, Register.A);
-
+        //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
+        opcodes[0x06] = () -> mviOpcode(Register.BC);
+        opcodes[0x16] = () -> mviOpcode(Register.DE);
+        opcodes[0x26] = () -> mviOpcode(Register.HL);
+        opcodes[0x36] = () -> mviOpcode(Register.M);
+        opcodes[0x0E] = () -> mviOpcode(Register.C);
+        opcodes[0x1E] = () -> mviOpcode(Register.E);
+        opcodes[0x2E] = () -> mviOpcode(Register.L);
+        opcodes[0x3E] = () -> mviOpcode(Register.A);
+        //NOTE::HLT | 1 | 7 | - - - - -
+        opcodes[0x76] = this::hltOpcode;
+        //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
+        opcodes[0x40] = () -> movOpcode(Register.BC, Register.BC);
+        opcodes[0x50] = () -> movOpcode(Register.DE, Register.BC);
+        opcodes[0x60] = () -> movOpcode(Register.HL, Register.BC);
+        opcodes[0x70] = () -> movOpcode(Register.M, Register.BC);
+        opcodes[0x41] = () -> movOpcode(Register.BC, Register.C);
+        opcodes[0x42] = () -> movOpcode(Register.DE, Register.C);
+        opcodes[0x53] = () -> movOpcode(Register.HL, Register.C);
+        opcodes[0x64] = () -> movOpcode(Register.M, Register.C);
     }
 
     public void executeOpcode(short opcode){
@@ -71,7 +94,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::LXI reg, d16 | 3 | 10 | - - - - -
     private void lxiOpcode(Register reg){
-        setCorrespondingRegisterValue(reg, mmu.readData((short) (registers.pc + 1)));
+        setCorrespondingRegisterValue(reg, mmu.readShortData((short) (registers.pc + 1)));
 
         registers.pc += 2;
         cycles += 10;
@@ -85,17 +108,17 @@ public class Intel8080 extends Intel8080Base{
         cycles += 7;
     }
 
-    //NOTE::SHLD a16 | 3 | 16 | - - - -
+    //NOTE::SHLD a16 | 3 | 16 | - - - - -
     private void shldOpcode(){
-        mmu.setData(getCorrespondingRegisterValue(Register.HL), mmu.readData((short) (registers.pc + 1)));
+        mmu.setData(getCorrespondingRegisterValue(Register.HL), mmu.readShortData((short) (registers.pc + 1)));
 
         registers.pc += 3;
         cycles += 16;
     }
 
-    //NOTE::STA a16 | 3 | 13 | - - - -
+    //NOTE::STA a16 | 3 | 13 | - - - - -
     private void staOpcode(){
-        mmu.setData(registers.a, mmu.readData((short) (registers.pc + 1)));
+        mmu.setData(registers.a, mmu.readShortData((short) (registers.pc + 1)));
 
         registers.pc += 3;
         cycles += 16;
@@ -112,7 +135,7 @@ public class Intel8080 extends Intel8080Base{
         cycles += 5;
     }
 
-    //NOTE::INR reg | 1 | 5 | S Z A P -
+    //NOTE::INR reg | 1 | 5 M = 10 | S Z A P -
     private void inrOpcode(ValueSize valueSize, Register reg){
         short result = 0;
         byte auxValue1 = 0;
@@ -120,30 +143,30 @@ public class Intel8080 extends Intel8080Base{
 
         switch(valueSize){
             case BYTE -> {
-                if(reg == Register.M) {
-                    result = (short) (mmu.readData(getCorrespondingRegisterValue(Register.HL)) + 1);
+                result = (short) (getCorrespondingRegisterValue(reg) + 1);
 
-                    auxValue1 = getHighByte(mmu.readData(getCorrespondingRegisterValue(Register.HL)));
+                auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
+                auxValue2 = getHighByte(result);
+
+                setCorrespondingRegisterValue(reg, result);
+            }
+            case SHORT -> {
+                if(reg == Register.M) {
+                    result = (short) (mmu.readShortData(getCorrespondingRegisterValue(Register.HL)) + 1);
+
+                    auxValue1 = getHighByte(mmu.readShortData(getCorrespondingRegisterValue(Register.HL)));
                     auxValue2 = getHighByte(result);
 
                     mmu.setData(result, getCorrespondingRegisterValue(Register.HL));
-                }
-                else {
-                    result = (short) (getCorrespondingRegisterValue(reg) + 1);
-
-                    auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
-                    auxValue2 = getHighByte(result);
-
-                    setCorrespondingRegisterValue(reg, result);
-                }
-            }
-            case SHORT -> {
+                    cycles += 5;
+                }else {
                     result = (short) (getCorrespondingRegisterValue(reg) + 1);
 
                     auxValue1 = (byte) getCorrespondingRegisterValue(reg);
                     auxValue2 = (byte) result;
 
                     setCorrespondingRegisterValue(reg, result);
+                }
             }
         }
 
@@ -156,7 +179,7 @@ public class Intel8080 extends Intel8080Base{
         cycles += 5;
     }
 
-    //NOTE::DCR reg | 1 | 5 | S Z A P -
+    //NOTE::DCR reg | 1 | 5 M = 10 | S Z A P -
     private void dcrOpcode(ValueSize valueSize, Register reg) {
         short result = 0;
         byte auxValue1 = 0;
@@ -164,30 +187,30 @@ public class Intel8080 extends Intel8080Base{
 
         switch(valueSize){
             case BYTE -> {
-                if(reg == Register.M) {
-                    result = (short) (mmu.readData(getCorrespondingRegisterValue(Register.HL)) - 1);
+                result = (short) (getCorrespondingRegisterValue(reg) - 1);
 
-                    auxValue1 = getHighByte(mmu.readData(getCorrespondingRegisterValue(Register.HL)));
+                auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
+                auxValue2 = getHighByte(result);
+
+                setCorrespondingRegisterValue(reg, result);
+            }
+            case SHORT -> {
+                if(reg == Register.M) {
+                    result = (short) (mmu.readShortData(getCorrespondingRegisterValue(Register.HL)) - 1);
+
+                    auxValue1 = getHighByte(mmu.readShortData(getCorrespondingRegisterValue(Register.HL)));
                     auxValue2 = getHighByte(result);
 
                     mmu.setData(result, getCorrespondingRegisterValue(Register.HL));
-                }
-                else {
+                    cycles += 5;
+                }else {
                     result = (short) (getCorrespondingRegisterValue(reg) - 1);
 
-                    auxValue1 = getHighByte(getCorrespondingRegisterValue(reg));
-                    auxValue2 = getHighByte(result);
+                    auxValue1 = (byte) getCorrespondingRegisterValue(reg);
+                    auxValue2 = (byte) result;
 
                     setCorrespondingRegisterValue(reg, result);
                 }
-            }
-            case SHORT -> {
-                result = (short) (getCorrespondingRegisterValue(reg) - 1);
-
-                auxValue1 = (byte) getCorrespondingRegisterValue(reg);
-                auxValue2 = (byte) result;
-
-                setCorrespondingRegisterValue(reg, result);
             }
         }
 
@@ -198,6 +221,38 @@ public class Intel8080 extends Intel8080Base{
 
         registers.pc++;
         cycles += 5;
+    }
+
+    //NOTE::HLT | 1 | 7 | - - - - -
+    private void hltOpcode(){
+        cycles += 7;
+        registers.pc++;
+    }
+
+    //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
+    private void movOpcode(Register reg1, Register reg2){
+        if(reg2 == Register.M){
+            setCorrespondingRegisterValue(reg1, mmu.readShortData(getCorrespondingRegisterValue(Register.HL)));
+            cycles += 2;
+        }else
+            setCorrespondingRegisterValue(reg1, getCorrespondingRegisterValue(reg2));
+
+        cycles += 5;
+        registers.pc++;
+    }
+
+
+    //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
+    void mviOpcode(Register reg){
+        if(reg == Register.M) {
+            mmu.setData(mmu.readByteData((byte) (registers.pc + 1)), getCorrespondingRegisterValue(Register.HL));
+            cycles += 3;
+        }
+        else
+            setCorrespondingRegisterValue(reg, mmu.readByteData((byte) (registers.pc + 1)));
+
+        registers.pc++;
+        cycles += 7;
     }
 
     @Override
