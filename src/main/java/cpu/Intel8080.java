@@ -3,8 +3,6 @@ package cpu;
 import memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
-    //TODO::Make parameters for methods that take in (value, address) be in that order
-    //TODO::Currently on mov were setting the byte to the memory as a short. Check Correctness
     //TODO::rewrite opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
 
     private interface Opcode{
@@ -150,6 +148,27 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x5F] = () -> movOpcode(Register.E, Register.A);
         opcodes[0x6F] = () -> movOpcode(Register.L, Register.A);
         opcodes[0x7F] = () -> movOpcode(Register.A, Register.A);
+
+        //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0x80] = () -> addOpcode(Register.B);
+        opcodes[0x81] = () -> addOpcode(Register.C);
+        opcodes[0x82] = () -> addOpcode(Register.D);
+        opcodes[0x83] = () -> addOpcode(Register.E);
+        opcodes[0x84] = () -> addOpcode(Register.H);
+        opcodes[0x85] = () -> addOpcode(Register.L);
+        opcodes[0x86] = () -> addOpcode(Register.M);
+        opcodes[0x87] = () -> addOpcode(Register.A);
+
+        //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0x90] = () -> addOpcode(Register.B);
+        opcodes[0x91] = () -> addOpcode(Register.C);
+        opcodes[0x92] = () -> addOpcode(Register.D);
+        opcodes[0x93] = () -> addOpcode(Register.E);
+        opcodes[0x94] = () -> addOpcode(Register.H);
+        opcodes[0x95] = () -> addOpcode(Register.L);
+        opcodes[0x96] = () -> addOpcode(Register.M);
+        opcodes[0x97] = () -> addOpcode(Register.A);
+
     }
 
     public void executeOpcode(short opcode){
@@ -290,7 +309,7 @@ public class Intel8080 extends Intel8080Base{
 
 
     //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
-    void mviOpcode(Register reg){
+    private void mviOpcode(Register reg){
         if(reg == Register.M) {
             mmu.setData(getRegisterValue(Register.HL), mmu.readByteData((short) (getRegisterValue(Register.PC) + 1)));
             cycles += 3;
@@ -301,6 +320,59 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 7;
     }
+
+    //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
+    private void addOpcode(Register reg){
+        byte result;
+        byte prevValue;
+
+        if(reg == Register.M) {
+            result = (byte) (getRegisterValue(Register.A) + mmu.readShortData(getRegisterValue(Register.HL)));
+            cycles += 3;
+        }
+        else
+            result = (byte) (getRegisterValue(Register.A) + getRegisterValue(reg));
+
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        setRegisterValue(Register.A, result);
+
+        checkSetSignFlag(ValueSize.BYTE, result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.ADD, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.ADD, prevValue, result);
+
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+        cycles +=4;
+    }
+
+    //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
+    private void subOpcode(Register reg){
+        byte result;
+        byte prevValue;
+
+        if(reg == Register.M) {
+            result = (byte) (getRegisterValue(Register.A) - mmu.readShortData(getRegisterValue(Register.HL)));
+            cycles += 3;
+        }
+        else
+            result = (byte) (getRegisterValue(Register.A) - getRegisterValue(reg));
+
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        setRegisterValue(Register.A, result);
+
+        checkSetSignFlag(ValueSize.BYTE, result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.SUB, prevValue, result);
+
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+        cycles +=4;
+    }
+
 
     @Override
     public String toString(){
