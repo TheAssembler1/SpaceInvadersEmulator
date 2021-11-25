@@ -5,6 +5,7 @@ import memory.Mmu;
 public class Intel8080 extends Intel8080Base{
     //NOTE::CHECK opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
     //NOTE::CHECK opcodes with this spreadsheet https://pastraiser.com/cpu/i8080/i8080_opcodes.html
+    //FIXME::No need to pass ValueSize to a lot of these methods.
 
     private interface Opcode{
         void execute();
@@ -151,24 +152,44 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x7F] = () -> movOpcode(Register.A, Register.A);
 
         //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x80] = () -> addOpcode(Register.B);
-        opcodes[0x81] = () -> addOpcode(Register.C);
-        opcodes[0x82] = () -> addOpcode(Register.D);
-        opcodes[0x83] = () -> addOpcode(Register.E);
-        opcodes[0x84] = () -> addOpcode(Register.H);
-        opcodes[0x85] = () -> addOpcode(Register.L);
-        opcodes[0x86] = () -> addOpcode(Register.M);
-        opcodes[0x87] = () -> addOpcode(Register.A);
+        opcodes[0x80] = () -> addOpcode(Register.B, false);
+        opcodes[0x81] = () -> addOpcode(Register.C, false);
+        opcodes[0x82] = () -> addOpcode(Register.D, false);
+        opcodes[0x83] = () -> addOpcode(Register.E, false);
+        opcodes[0x84] = () -> addOpcode(Register.H, false);
+        opcodes[0x85] = () -> addOpcode(Register.L, false);
+        opcodes[0x86] = () -> addOpcode(Register.M, false);
+        opcodes[0x87] = () -> addOpcode(Register.A, false);
+
+        //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0x88] = () -> addOpcode(Register.B, true);
+        opcodes[0x89] = () -> addOpcode(Register.C, true);
+        opcodes[0x8A] = () -> addOpcode(Register.D, true);
+        opcodes[0x8B] = () -> addOpcode(Register.E, true);
+        opcodes[0x8C] = () -> addOpcode(Register.H, true);
+        opcodes[0x8D] = () -> addOpcode(Register.L, true);
+        opcodes[0x8E] = () -> addOpcode(Register.M, true);
+        opcodes[0x8F] = () -> addOpcode(Register.A, true);
 
         //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x90] = () -> subOpcode(Register.B);
-        opcodes[0x91] = () -> subOpcode(Register.C);
-        opcodes[0x92] = () -> subOpcode(Register.D);
-        opcodes[0x93] = () -> subOpcode(Register.E);
-        opcodes[0x94] = () -> subOpcode(Register.H);
-        opcodes[0x95] = () -> subOpcode(Register.L);
-        opcodes[0x96] = () -> subOpcode(Register.M);
-        opcodes[0x97] = () -> subOpcode(Register.A);
+        opcodes[0x90] = () -> subOpcode(Register.B, false);
+        opcodes[0x91] = () -> subOpcode(Register.C, false);
+        opcodes[0x92] = () -> subOpcode(Register.D, false);
+        opcodes[0x93] = () -> subOpcode(Register.E, false);
+        opcodes[0x94] = () -> subOpcode(Register.H, false);
+        opcodes[0x95] = () -> subOpcode(Register.L, false);
+        opcodes[0x96] = () -> subOpcode(Register.M, false);
+        opcodes[0x97] = () -> subOpcode(Register.A, false);
+
+        //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0x98] = () -> subOpcode(Register.B, true);
+        opcodes[0x99] = () -> subOpcode(Register.C, true);
+        opcodes[0x9A] = () -> subOpcode(Register.D, true);
+        opcodes[0x9B] = () -> subOpcode(Register.E, true);
+        opcodes[0x9C] = () -> subOpcode(Register.H, true);
+        opcodes[0x9D] = () -> subOpcode(Register.L, true);
+        opcodes[0x9E] = () -> subOpcode(Register.M, true);
+        opcodes[0x9F] = () -> subOpcode(Register.A, true);
 
     }
 
@@ -323,7 +344,8 @@ public class Intel8080 extends Intel8080Base{
     }
 
     //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
-    private void addOpcode(Register reg){
+    //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
+    private void addOpcode(Register reg, boolean carryFlag){
         byte result;
         byte prevValue;
 
@@ -333,6 +355,10 @@ public class Intel8080 extends Intel8080Base{
         }
         else
             result = (byte) (getRegisterValue(Register.A) + getRegisterValue(reg));
+
+        if(carryFlag)
+            if (getFlag(Flags.CARRY_FLAG))
+                result ++;
 
         prevValue = (byte) getRegisterValue(Register.A);
 
@@ -349,7 +375,8 @@ public class Intel8080 extends Intel8080Base{
     }
 
     //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
-    private void subOpcode(Register reg){
+    //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
+    private void subOpcode(Register reg, boolean carryFlag){
         byte result;
         byte prevValue;
 
@@ -359,6 +386,10 @@ public class Intel8080 extends Intel8080Base{
         }
         else
             result = (byte) (getRegisterValue(Register.A) - getRegisterValue(reg));
+
+        if(carryFlag)
+            if(getFlag(Flags.CARRY_FLAG))
+                result--;
 
         prevValue = (byte) getRegisterValue(Register.A);
 
