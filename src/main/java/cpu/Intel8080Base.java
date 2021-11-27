@@ -147,7 +147,7 @@ public abstract class Intel8080Base{
         }
     }
 
-    protected void checkSetParityFlag(short value){
+    protected void checkSetParityFlag(byte value){
         //FIXME::This method needs to be tested
         int parity = 0;
         while(value >> 1 != 0){

@@ -126,7 +126,7 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x6A] = () -> movOpcode(Register.L, Register.D);
         opcodes[0x7A] = () -> movOpcode(Register.A, Register.D);
 
-        opcodes[0x4B] = () -> movOpcode(Register.C, Register.E);
+        opcodes[0x4B] = () -> movOpcode(Register .C, Register.E);
         opcodes[0x5B] = () -> movOpcode(Register.E, Register.E);
         opcodes[0x6B] = () -> movOpcode(Register.L, Register.E);
         opcodes[0x7B] = () -> movOpcode(Register.A, Register.E);
@@ -150,7 +150,7 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x5F] = () -> movOpcode(Register.E, Register.A);
         opcodes[0x6F] = () -> movOpcode(Register.L, Register.A);
         opcodes[0x7F] = () -> movOpcode(Register.A, Register.A);
-        /*
+
         //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
         opcodes[0x80] = () -> addOpcode(Register.B, false);
         opcodes[0x81] = () -> addOpcode(Register.C, false);
@@ -160,7 +160,6 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x85] = () -> addOpcode(Register.L, false);
         opcodes[0x86] = () -> addOpcode(Register.M, false);
         opcodes[0x87] = () -> addOpcode(Register.A, false);
-
         //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
         opcodes[0x88] = () -> addOpcode(Register.B, true);
         opcodes[0x89] = () -> addOpcode(Register.C, true);
@@ -170,7 +169,6 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x8D] = () -> addOpcode(Register.L, true);
         opcodes[0x8E] = () -> addOpcode(Register.M, true);
         opcodes[0x8F] = () -> addOpcode(Register.A, true);
-
         //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
         opcodes[0x90] = () -> subOpcode(Register.B, false);
         opcodes[0x91] = () -> subOpcode(Register.C, false);
@@ -180,7 +178,6 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x95] = () -> subOpcode(Register.L, false);
         opcodes[0x96] = () -> subOpcode(Register.M, false);
         opcodes[0x97] = () -> subOpcode(Register.A, false);
-
         //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
         opcodes[0x98] = () -> subOpcode(Register.B, true);
         opcodes[0x99] = () -> subOpcode(Register.C, true);
@@ -189,7 +186,7 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x9C] = () -> subOpcode(Register.H, true);
         opcodes[0x9D] = () -> subOpcode(Register.L, true);
         opcodes[0x9E] = () -> subOpcode(Register.M, true);
-        opcodes[0x9F] = () -> subOpcode(Register.A, true);*/
+        opcodes[0x9F] = () -> subOpcode(Register.A, true);
         //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
         opcodes[0xC2] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
         opcodes[0xD2] = () -> jmpOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
@@ -325,15 +322,50 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
     private void addOpcode(Register reg, boolean carryFlag){
+        byte prevValue; byte result;
 
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + getRegisterValue(reg))); }
+        else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
+
+        if(carryFlag) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + 1));}
+
+        result = (byte) getRegisterValue(Register.A);
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.ADD, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.ADD, prevValue, result);
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
-    /*
     //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
     private void subOpcode(Register reg, boolean carryFlag){
+        byte prevValue; byte result;
 
-    }*/
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - getRegisterValue(reg))); }
+        else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
+
+        if(carryFlag) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - 1));}
+
+        result = (byte) getRegisterValue(Register.A);
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.SUB, prevValue, result);
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
 
     //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
     private void jmpOpcode(Flags flag, FlagChoice flagChoice){
