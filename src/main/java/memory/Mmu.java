@@ -25,8 +25,13 @@ public class Mmu {
     }
 
     //NOTE::Set 16 bits of data to memory formatted with little endianness
-    public void setData(short address, short value) {
+    public void setShortData(short address, short value) {
         memory.putShort(address, value);
+    }
+
+    //NOTE::Set 8 bits of data to memory
+    public void setByteData(short address, byte value) {
+        memory.put(address, value);
     }
 
     //NOTE::Reading opcode at current pc

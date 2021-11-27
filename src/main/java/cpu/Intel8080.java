@@ -51,7 +51,6 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x1C] = () -> inrOpcode(Register.E);
         opcodes[0x2C] = () -> inrOpcode(Register.L);
         opcodes[0x3C] = () -> inrOpcode(Register.A);
-
         //NOTE::DCR reg | 1 | 5 | S Z A P -
         opcodes[0x05] = () -> dcrOpcode(Register.B);
         opcodes[0x15] = () -> dcrOpcode(Register.D);
@@ -61,8 +60,6 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x1D] = () -> dcrOpcode(Register.E);
         opcodes[0x2D] = () -> dcrOpcode(Register.L);
         opcodes[0x3D] = () -> dcrOpcode(Register.A);
-
-        /*
         //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
         opcodes[0x06] = () -> mviOpcode(Register.B);
         opcodes[0x16] = () -> mviOpcode(Register.D);
@@ -71,11 +68,10 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x0E] = () -> mviOpcode(Register.C);
         opcodes[0x1E] = () -> mviOpcode(Register.E);
         opcodes[0x2E] = () -> mviOpcode(Register.L);
-        opcodes[0x3E] = () -> mviOpcode(Register.A);*/
+        opcodes[0x3E] = () -> mviOpcode(Register.A);
         //NOTE::HLT | 1 | 7 | - - - - -
         opcodes[0x76] = this::hltOpcode;
         //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
-        /*
         opcodes[0x40] = () -> movOpcode(Register.B, Register.B);
         opcodes[0x50] = () -> movOpcode(Register.D, Register.B);
         opcodes[0x60] = () -> movOpcode(Register.H, Register.B);
@@ -154,7 +150,7 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x5F] = () -> movOpcode(Register.E, Register.A);
         opcodes[0x6F] = () -> movOpcode(Register.L, Register.A);
         opcodes[0x7F] = () -> movOpcode(Register.A, Register.A);
-
+        /*
         //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
         opcodes[0x80] = () -> addOpcode(Register.B, false);
         opcodes[0x81] = () -> addOpcode(Register.C, false);
@@ -231,7 +227,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::STAX reg | 1 | 7 | - - - - -
     private void staxOpcode(Register reg) {
-        mmu.setData(getRegisterValue(reg), getRegisterValue(Register.A));
+        mmu.setShortData(getRegisterValue(reg), getRegisterValue(Register.A));
 
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 7;
@@ -239,7 +235,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::SHLD a16 | 3 | 16 | - - - - -
     private void shldOpcode(){
-        mmu.setData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)), getRegisterValue(Register.HL));
+        mmu.setShortData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)), getRegisterValue(Register.HL));
 
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
         cycles += 16;
@@ -247,7 +243,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::STA a16 | 3 | 13 | - - - - -
     private void staOpcode(){
-        mmu.setData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)), getRegisterValue(Register.A));
+        mmu.setShortData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)), getRegisterValue(Register.A));
 
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
         cycles += 16;
@@ -268,7 +264,7 @@ public class Intel8080 extends Intel8080Base{
         prevValue = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
         if(reg != Register.M) { setRegisterValue(reg, (short) (getRegisterValue(reg) + 1)); }
-        else{ mmu.setData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.HL) + 1))); }
+        else{ mmu.setShortData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.HL) + 1))); cycles += 5; }
 
         result = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
@@ -288,7 +284,7 @@ public class Intel8080 extends Intel8080Base{
         prevValue = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
         if(reg != Register.M) { setRegisterValue(reg, (short) (getRegisterValue(reg) - 1)); }
-        else{ mmu.setData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.HL) - 1))); }
+        else{ mmu.setShortData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.HL) - 1))); cycles += 5; }
 
         result = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
@@ -308,15 +304,22 @@ public class Intel8080 extends Intel8080Base{
     }
 
     //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
-    /*
     private void movOpcode(Register reg1, Register reg2){
+        if(reg1 != Register.M && reg2 != Register.M) { setRegisterValue(reg1, getRegisterValue(reg2)); }
+        else if(reg1 != Register.M) { setRegisterValue(reg1, mmu.readByteData(getRegisterValue(Register.HL))); cycles += 2; }
+        else { mmu.setByteData(getRegisterValue(Register.HL), (byte) getRegisterValue(reg2)); cycles +=2; }
 
+        cycles += 5;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
-
 
     //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
     private void mviOpcode(Register reg){
+        if(reg != Register.M) { setRegisterValue(reg, mmu.readByteData((short) (getRegisterValue(Register.PC) + 1))); }
+        else { mmu.setByteData(getRegisterValue(Register.HL), mmu.readByteData((short) (getRegisterValue(Register.PC) + 1))); cycles += 3; }
 
+        cycles += 7;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
     //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
@@ -325,6 +328,7 @@ public class Intel8080 extends Intel8080Base{
 
     }
 
+    /*
     //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
     private void subOpcode(Register reg, boolean carryFlag){
