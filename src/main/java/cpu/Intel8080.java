@@ -3,7 +3,7 @@ package cpu;
 import memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
-    //NOTE::CHECK opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
+    //NOTE::CHECK opcodes with these instructions
     //NOTE::CHECK opcodes with this spreadsheet https://pastraiser.com/cpu/i8080/i8080_opcodes.html
     //FIXME::No need to pass ValueSize to a lot of these methods.
 
@@ -43,23 +43,26 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x23] = () -> inxOpcode(Register.HL);
         opcodes[0x33] = () -> inxOpcode(Register.SP);
         //NOTE::INR reg | 1 | 5 | S Z A P -
-        opcodes[0x04] = () -> inrOpcode(ValueSize.BYTE, Register.B);
-        opcodes[0x14] = () -> inrOpcode(ValueSize.BYTE, Register.D);
-        opcodes[0x24] = () -> inrOpcode(ValueSize.BYTE, Register.H);
-        opcodes[0x34] = () -> inrOpcode(ValueSize.SHORT, Register.M);
-        opcodes[0x0C] = () -> inrOpcode(ValueSize.BYTE, Register.C);
-        opcodes[0x1C] = () -> inrOpcode(ValueSize.BYTE, Register.E);
-        opcodes[0x2C] = () -> inrOpcode(ValueSize.BYTE, Register.L);
-        opcodes[0x3C] = () -> inrOpcode(ValueSize.BYTE, Register.A);
+        opcodes[0x04] = () -> inrOpcode(Register.B);
+        opcodes[0x14] = () -> inrOpcode(Register.D);
+        opcodes[0x24] = () -> inrOpcode(Register.H);
+        opcodes[0x34] = () -> inrOpcode(Register.M);
+        opcodes[0x0C] = () -> inrOpcode(Register.C);
+        opcodes[0x1C] = () -> inrOpcode(Register.E);
+        opcodes[0x2C] = () -> inrOpcode(Register.L);
+        opcodes[0x3C] = () -> inrOpcode(Register.A);
+
         //NOTE::DCR reg | 1 | 5 | S Z A P -
-        opcodes[0x05] = () -> dcrOpcode(ValueSize.BYTE, Register.B);
-        opcodes[0x15] = () -> dcrOpcode(ValueSize.BYTE, Register.D);
-        opcodes[0x25] = () -> dcrOpcode(ValueSize.BYTE, Register.H);
-        opcodes[0x35] = () -> dcrOpcode(ValueSize.SHORT, Register.M);
-        opcodes[0x0D] = () -> dcrOpcode(ValueSize.BYTE, Register.C);
-        opcodes[0x1D] = () -> dcrOpcode(ValueSize.BYTE, Register.E);
-        opcodes[0x2D] = () -> dcrOpcode(ValueSize.BYTE, Register.L);
-        opcodes[0x3D] = () -> dcrOpcode(ValueSize.BYTE, Register.A);
+        opcodes[0x05] = () -> dcrOpcode(Register.B);
+        opcodes[0x15] = () -> dcrOpcode(Register.D);
+        opcodes[0x25] = () -> dcrOpcode(Register.H);
+        opcodes[0x35] = () -> dcrOpcode(Register.M);
+        opcodes[0x0D] = () -> dcrOpcode(Register.C);
+        opcodes[0x1D] = () -> dcrOpcode(Register.E);
+        opcodes[0x2D] = () -> dcrOpcode(Register.L);
+        opcodes[0x3D] = () -> dcrOpcode(Register.A);
+
+        /*
         //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
         opcodes[0x06] = () -> mviOpcode(Register.B);
         opcodes[0x16] = () -> mviOpcode(Register.D);
@@ -68,10 +71,11 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x0E] = () -> mviOpcode(Register.C);
         opcodes[0x1E] = () -> mviOpcode(Register.E);
         opcodes[0x2E] = () -> mviOpcode(Register.L);
-        opcodes[0x3E] = () -> mviOpcode(Register.A);
+        opcodes[0x3E] = () -> mviOpcode(Register.A);*/
         //NOTE::HLT | 1 | 7 | - - - - -
         opcodes[0x76] = this::hltOpcode;
         //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
+        /*
         opcodes[0x40] = () -> movOpcode(Register.B, Register.B);
         opcodes[0x50] = () -> movOpcode(Register.D, Register.B);
         opcodes[0x60] = () -> movOpcode(Register.H, Register.B);
@@ -189,11 +193,25 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x9C] = () -> subOpcode(Register.H, true);
         opcodes[0x9D] = () -> subOpcode(Register.L, true);
         opcodes[0x9E] = () -> subOpcode(Register.M, true);
-        opcodes[0x9F] = () -> subOpcode(Register.A, true);
+        opcodes[0x9F] = () -> subOpcode(Register.A, true);*/
+        //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
+        opcodes[0xC2] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
+        opcodes[0xD2] = () -> jmpOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
+        opcodes[0xE2] = () -> jmpOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
+        opcodes[0xF2] = () -> jmpOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
 
+        opcodes[0xC3] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.NULL);
+
+        opcodes[0xCA] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
+        opcodes[0xDA] = () -> jmpOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
+        opcodes[0xEA] = () -> jmpOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
+        opcodes[0xFA] = () -> jmpOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
+
+        opcodes[0xCB] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.NULL);
     }
 
     public void executeOpcode(short opcode){
+        System.out.println(this);
         opcodes[opcode].execute();
     }
 
@@ -244,67 +262,43 @@ public class Intel8080 extends Intel8080Base{
     }
 
     //NOTE::INR reg | 1 | 5 M = 10 | S Z A P -
-    private void inrOpcode(ValueSize valueSize, Register reg){
-        short result;
-        byte auxValue1;
-        byte auxValue2;
+    private void inrOpcode(Register reg){
+        byte prevValue; byte result;
 
-        if(reg == Register.M) {
-            short addressHLValue = mmu.readShortData(getRegisterValue(Register.HL));
-            result = (short) (addressHLValue + 1);
+        prevValue = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
-            auxValue1 = getHighByte(addressHLValue);
-            auxValue2 = getHighByte(result);
-            mmu.setData(getRegisterValue(Register.HL), result);
+        if(reg != Register.M) { setRegisterValue(reg, (short) (getRegisterValue(reg) + 1)); }
+        else{ mmu.setData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.HL) + 1))); }
 
-            cycles += 5;
-        }else{
-            result = (short) (getRegisterValue(reg) + 1);
+        result = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
-            auxValue1 = (byte) getRegisterValue(reg);
-            auxValue2 = (byte) result;
-            setRegisterValue(reg, result);
-        }
-
-        checkSetSignFlag(valueSize, result);
+        checkSetSignFlag(result);
         checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.ADD, auxValue1, auxValue2);
+        checkSetAuxiliaryCarryFlag(Operation.ADD, prevValue, result);
         checkSetParityFlag(result);
 
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 5;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
     //NOTE::DCR reg | 1 | 5 M = 10 | S Z A P -
-    private void dcrOpcode(ValueSize valueSize, Register reg) {
-        short result;
-        byte auxValue1;
-        byte auxValue2;
+    private void dcrOpcode(Register reg) {
+        byte prevValue; byte result;
 
-        if(reg == Register.M) {
-            short addressHLValue = mmu.readShortData(getRegisterValue(Register.HL));
-            result = (short) (addressHLValue - 1);
+        prevValue = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
-            auxValue1 = getHighByte(addressHLValue);
-            auxValue2 = getHighByte(result);
-            mmu.setData(getRegisterValue(Register.HL), result);
+        if(reg != Register.M) { setRegisterValue(reg, (short) (getRegisterValue(reg) - 1)); }
+        else{ mmu.setData(getRegisterValue(Register.HL), mmu.readShortData((short) (getRegisterValue(Register.HL) - 1))); }
 
-            cycles += 5;
-        }else{
-            result = (short) (getRegisterValue(reg) - 1);
+        result = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
-            auxValue1 = (byte) getRegisterValue(reg);
-            auxValue2 = (byte) result;
-            setRegisterValue(reg, result);
-        }
-
-        checkSetSignFlag(valueSize, result);
+        checkSetSignFlag(result);
         checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.ADD, auxValue1, auxValue2);
+        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
         checkSetParityFlag(result);
 
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 5;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
     //NOTE::HLT | 1 | 7 | - - - - -
@@ -314,97 +308,42 @@ public class Intel8080 extends Intel8080Base{
     }
 
     //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
+    /*
     private void movOpcode(Register reg1, Register reg2){
-        if(reg1 == Register.M || reg2 == Register.M){
-            if(reg1 == Register.M)
-                mmu.setData(getRegisterValue(Register.HL), getRegisterValue(reg2));
-            else
-                setRegisterValue(reg1, mmu.readByteData(getRegisterValue(Register.HL)));
 
-            cycles += 2;
-        }
-        setRegisterValue(reg1, getRegisterValue(reg2));
-
-        cycles += 5;
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
 
     //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
     private void mviOpcode(Register reg){
-        if(reg == Register.M) {
-            mmu.setData(getRegisterValue(Register.HL), mmu.readByteData((short) (getRegisterValue(Register.PC) + 1)));
-            cycles += 3;
-        }
-        else
-            setRegisterValue(reg, mmu.readByteData((byte) (getRegisterValue(Register.PC) + 1)));
 
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
-        cycles += 7;
     }
 
     //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
     private void addOpcode(Register reg, boolean carryFlag){
-        byte result;
-        byte prevValue;
 
-        if(reg == Register.M) {
-            result = (byte) (getRegisterValue(Register.A) + mmu.readShortData(getRegisterValue(Register.HL)));
-            cycles += 3;
-        }
-        else
-            result = (byte) (getRegisterValue(Register.A) + getRegisterValue(reg));
-
-        if(carryFlag)
-            if (getFlag(Flags.CARRY_FLAG))
-                result ++;
-
-        prevValue = (byte) getRegisterValue(Register.A);
-
-        setRegisterValue(Register.A, result);
-
-        checkSetSignFlag(ValueSize.BYTE, result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.ADD, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.ADD, prevValue, result);
-
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
-        cycles +=4;
     }
 
     //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
     private void subOpcode(Register reg, boolean carryFlag){
-        byte result;
-        byte prevValue;
 
-        if(reg == Register.M) {
-            result = (byte) (getRegisterValue(Register.A) - mmu.readShortData(getRegisterValue(Register.HL)));
-            cycles += 3;
+    }*/
+
+    //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
+    private void jmpOpcode(Flags flag, FlagChoice flagChoice){
+        if(flagChoice == FlagChoice.NULL || (getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
+                setRegisterValue(Register.PC, (short) (mmu.readShortData(getRegisterValue(Register.PC)) + 1));
+                cycles += 7;
         }
         else
-            result = (byte) (getRegisterValue(Register.A) - getRegisterValue(reg));
+            setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
 
-        if(carryFlag)
-            if(getFlag(Flags.CARRY_FLAG))
-                result--;
+        System.out.println(getRegisterValue(Register.PC) + "------------------------");
 
-        prevValue = (byte) getRegisterValue(Register.A);
-
-        setRegisterValue(Register.A, result);
-
-        checkSetSignFlag(ValueSize.BYTE, result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.SUB, prevValue, result);
-
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
-        cycles +=4;
+        cycles += 3;
     }
-
 
     @Override
     public String toString(){

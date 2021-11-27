@@ -52,7 +52,7 @@ public abstract class Intel8080Base{
     }
 
     protected enum Operation{
-        ADD, SUB
+        ADD, SUB, AND, OR, XOR
     }
 
     protected enum ValueSize {
@@ -115,22 +115,12 @@ public abstract class Intel8080Base{
         return bb.getShort(0);
     }
 
-    protected void checkSetSignFlag(ValueSize valueSize, short value){
+    protected void checkSetSignFlag(byte value){
         //FIXME::This method needs to be tested
-        switch(valueSize){
-            case BYTE -> {
-                if((((byte)value >> 0x7) & 1) == 1)
-                    setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
-                else
-                    setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
-            }
-            case SHORT -> {
-                if(((value >> 0xF) & 1) == 1)
-                    setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
-                else
-                    setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
-            }
-        }
+        if((((byte)value >> 0x7) & 1) == 1)
+            setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
+        else
+            setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
     }
 
     protected void checkSetZeroFlag(short value){
