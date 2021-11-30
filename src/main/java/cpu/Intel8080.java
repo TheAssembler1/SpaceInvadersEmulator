@@ -3,9 +3,8 @@ package cpu;
 import memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
-    //NOTE::CHECK opcodes with these instructions
+    //NOTE::CHECK opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
     //NOTE::CHECK opcodes with this spreadsheet https://pastraiser.com/cpu/i8080/i8080_opcodes.html
-    //FIXME::No need to pass ValueSize to a lot of these methods.
 
     private interface Opcode{
         void execute();
@@ -187,6 +186,42 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x9D] = () -> subOpcode(Register.L, true);
         opcodes[0x9E] = () -> subOpcode(Register.M, true);
         opcodes[0x9F] = () -> subOpcode(Register.A, true);
+        //NOTE::ANA reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0xA0] = () -> anaOpcode(Register.B);
+        opcodes[0xA1] = () -> anaOpcode(Register.C);
+        opcodes[0xA2] = () -> anaOpcode(Register.D);
+        opcodes[0xA3] = () -> anaOpcode(Register.E);
+        opcodes[0xA4] = () -> anaOpcode(Register.H);
+        opcodes[0xA5] = () -> anaOpcode(Register.L);
+        opcodes[0xA6] = () -> anaOpcode(Register.M);
+        opcodes[0xA7] = () -> anaOpcode(Register.A);
+        //NOTE::XRA reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0xA8] = () -> xraOpcode(Register.B);
+        opcodes[0xA9] = () -> xraOpcode(Register.C);
+        opcodes[0xAA] = () -> xraOpcode(Register.D);
+        opcodes[0xAB] = () -> xraOpcode(Register.E);
+        opcodes[0xAC] = () -> xraOpcode(Register.H);
+        opcodes[0xAD] = () -> xraOpcode(Register.L);
+        opcodes[0xAE] = () -> xraOpcode(Register.M);
+        opcodes[0xAF] = () -> xraOpcode(Register.A);
+        //NOTE::ORA reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0xB0] = () -> oraOpcode(Register.B);
+        opcodes[0xB1] = () -> oraOpcode(Register.C);
+        opcodes[0xB2] = () -> oraOpcode(Register.D);
+        opcodes[0xB3] = () -> oraOpcode(Register.E);
+        opcodes[0xB4] = () -> oraOpcode(Register.H);
+        opcodes[0xB5] = () -> oraOpcode(Register.L);
+        opcodes[0xB6] = () -> oraOpcode(Register.M);
+        opcodes[0xB7] = () -> oraOpcode(Register.A);
+        //NOTE::CMP reg | 1 | 4 M = 7 | S Z A P C
+        opcodes[0xB8] = () -> cmpOpcode(Register.B);
+        opcodes[0xB9] = () -> cmpOpcode(Register.C);
+        opcodes[0xBA] = () -> cmpOpcode(Register.D);
+        opcodes[0xBB] = () -> cmpOpcode(Register.E);
+        opcodes[0xBC] = () -> cmpOpcode(Register.H);
+        opcodes[0xBD] = () -> cmpOpcode(Register.L);
+        opcodes[0xBE] = () -> cmpOpcode(Register.M);
+        opcodes[0xBF] = () -> cmpOpcode(Register.A);
         //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
         opcodes[0xC2] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
         opcodes[0xD2] = () -> jmpOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
@@ -356,6 +391,93 @@ public class Intel8080 extends Intel8080Base{
         if(carryFlag) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - 1));}
 
         result = (byte) getRegisterValue(Register.A);
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.SUB, prevValue, result);
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::ANA reg | 1 | 4 M = 7 | S Z A P C
+    private void anaOpcode(Register reg){
+        byte prevValue; byte result;
+
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) & getRegisterValue(reg))); }
+        else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) & mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
+
+        result = (byte) getRegisterValue(Register.A);
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.AND, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.AND, prevValue, result);
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::XRA reg | 1 | 4 M = 7 | S Z A P C
+    private void xraOpcode(Register reg){
+        byte prevValue; byte result;
+
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) ^ getRegisterValue(reg))); }
+        else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A)  ^ mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
+
+        result = (byte) getRegisterValue(Register.A);
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.XOR, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.XOR, prevValue, result);
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::ORA reg | 1 | 4 M = 7 | S Z A P C
+    private void oraOpcode(Register reg){
+        byte prevValue; byte result;
+
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) | getRegisterValue(reg))); }
+        else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A)  | mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
+
+        result = (byte) getRegisterValue(Register.A);
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        checkSetAuxiliaryCarryFlag(Operation.OR, prevValue, result);
+        checkSetParityFlag(result);
+        checkSetCarryFlag(Operation.OR, prevValue, result);
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::CMP reg | 1 | 4 M = 7 | S Z A P C
+    private void cmpOpcode(Register reg){
+        byte prevValue; byte result;
+
+        prevValue = (byte) getRegisterValue(Register.A);
+
+        if(reg != Register.M ) {
+            prevValue = (byte) getRegisterValue(reg);
+            result = (byte) (getRegisterValue(Register.A) - getRegisterValue(reg));
+        } else {
+            prevValue = mmu.readByteData(getRegisterValue(Register.HL));
+            result = (byte) (getRegisterValue(Register.A) - mmu.readByteData(getRegisterValue(Register.HL))); cycles += 3;
+        }
 
         checkSetSignFlag(result);
         checkSetZeroFlag(result);

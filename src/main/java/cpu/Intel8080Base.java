@@ -161,22 +161,32 @@ public abstract class Intel8080Base{
             setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL);
     }
 
-    protected void checkSetCarryFlag(Operation operation, int value1, int value2){
+    protected void checkSetCarryFlag(Operation operation, byte value1, byte value2){
+        byte result = 0;
+
         //FIXME::This method needs to be tested
         switch(operation){
             case ADD -> {
-                if(value1 + value2 > 0xFFFF)
-                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
-                else
-                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
+                result = (byte) (value1 + value2);
             }
             case SUB -> {
-                if(value1 - value2 < 0)
-                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
-                else
-                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
+                result = (byte) (value1 - value2);
+            }
+            case AND -> {
+                result = (byte) (value1 & value2);
+            }
+            case OR -> {
+                result = (byte) (value1 | value2);
+            }
+            case XOR -> {
+                result = (byte) (value1 ^ value2);
             }
         }
+
+        if(result < 0)
+            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
+        else
+            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
     }
 
     protected void setFlag(FlagChoice signFlag, FlagChoice ZERO_FLAG, FlagChoice auxiliaryCarryFlag, FlagChoice parityFlag, FlagChoice carryFlag){
