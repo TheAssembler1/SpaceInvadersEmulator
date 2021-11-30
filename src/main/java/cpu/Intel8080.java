@@ -503,6 +503,18 @@ public class Intel8080 extends Intel8080Base{
         cycles += 3;
     }
 
+    //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
+    private void popOpcode(Register reg){
+        if(reg == Register.AF){
+            //FIXME::Don't know the flags to update here
+            setRegisterValue(reg, mmu.readShortData(getRegisterValue(Register.SP))); setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
+        }
+        else { setRegisterValue(reg, mmu.readShortData(getRegisterValue(Register.SP))); setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2)); }
+
+        cycles += 10;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
     @Override
     public String toString(){
         return super.toString();
