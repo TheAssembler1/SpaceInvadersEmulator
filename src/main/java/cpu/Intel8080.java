@@ -236,6 +236,16 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xFA] = () -> jmpOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
 
         opcodes[0xCB] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.NULL);
+        //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
+        opcodes[0xC1] = () -> popOpcode(Register.BC);
+        opcodes[0xD1] = () -> popOpcode(Register.DE);
+        opcodes[0xE1] = () -> popOpcode(Register.HL);
+        opcodes[0xF1] = () -> popOpcode(Register.AF);
+        //NOTE::PUSH reg | 1 | 11 | - - - -
+        opcodes[0xC5] = () -> pushOpcode(Register.BC);
+        opcodes[0xD5] = () -> pushOpcode(Register.DE);
+        opcodes[0xE5] = () -> pushOpcode(Register.HL);
+        opcodes[0xF5] = () -> pushOpcode(Register.AF);
     }
 
     public void executeOpcode(short opcode){
@@ -505,13 +515,18 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
     private void popOpcode(Register reg){
-        if(reg == Register.AF){
-            //FIXME::Don't know the flags to update here
-            setRegisterValue(reg, mmu.readShortData(getRegisterValue(Register.SP))); setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
-        }
-        else { setRegisterValue(reg, mmu.readShortData(getRegisterValue(Register.SP))); setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2)); }
+        setRegisterValue(reg, mmu.readShortData(getRegisterValue(Register.SP)));
+        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
 
         cycles += 10;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::PUSH reg | 1 | 11 | - - - -
+    private void pushOpcode(Register reg){
+        mmu.setShortData(getRegisterValue(Register.SP), getRegisterValue(reg));
+
+        cycles += 1;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
