@@ -278,38 +278,48 @@ public abstract class Intel8080Base{
     @Override
     public String toString(){
         String string = "Registers:\n";
-        string = string.concat(String.format("AF: %x\n", getRegisterPairValue(Register.AF)));
-        string = string.concat(String.format("BC: %x\n", getRegisterPairValue(Register.BC)));
-        string = string.concat(String.format("DE: %x\n", getRegisterPairValue(Register.DE)));
-        string = string.concat(String.format("HL: %x\n", getRegisterPairValue(Register.HL)));
+        string = string.concat(String.format("AF: %x | A: %x | F: %x\n", getRegisterPairValue(Register.AF), registers.a, registers.f));
+        string = string.concat(String.format("BC: %x | B: %x | C: %x\n", getRegisterPairValue(Register.BC), registers.b, registers.c));
+        string = string.concat(String.format("DE: %x | D: %x | E: %x\n", getRegisterPairValue(Register.DE), registers.d, registers.e));
+        string = string.concat(String.format("HL: %x | H: %x | L: %x\n", getRegisterPairValue(Register.HL), registers.h, registers.l));
         string = string.concat(String.format("SP: %x\n", registers.sp));
         string = string.concat(String.format("PC: %x\n\n", registers.pc));
 
         string = string.concat("Flags:\n");
         if(getFlag(Flags.SIGN_FLAG))
-            string = string.concat("Set = " + Flags.SIGN_FLAG + " | ");
+            string = string.concat("Set = " + Flags.SIGN_FLAG);
         else
-            string = string.concat("Not Set = " + Flags.SIGN_FLAG + " | ");
+            string = string.concat("Not Set = " + Flags.SIGN_FLAG);
+
+        string = string.concat("\n");
 
         if(getFlag(Flags.ZERO_FLAG))
-            string = string.concat("Set = " + Flags.ZERO_FLAG + " | ");
+            string = string.concat("Set = " + Flags.ZERO_FLAG);
         else
-            string = string.concat("Not Set = " + Flags.ZERO_FLAG + " | ");
+            string = string.concat("Not Set = " + Flags.ZERO_FLAG);
+
+        string = string.concat("\n");
 
         if(getFlag(Flags.AUXILIARY_CARRY_FLAG))
-            string = string.concat("Set = " + Flags.AUXILIARY_CARRY_FLAG + " | ");
+            string = string.concat("Set = " + Flags.AUXILIARY_CARRY_FLAG);
         else
-            string = string.concat("Not Set = " + Flags.AUXILIARY_CARRY_FLAG + " | ");
+            string = string.concat("Not Set = " + Flags.AUXILIARY_CARRY_FLAG);
+
+        string = string.concat("\n");
 
         if(getFlag(Flags.PARITY_FLAG))
-            string = string.concat("Set = " + Flags.PARITY_FLAG + " | ");
+            string = string.concat("Set = " + Flags.PARITY_FLAG);
         else
-            string = string.concat("Not Set = " + Flags.PARITY_FLAG + " | ");
+            string = string.concat("Not Set = " + Flags.PARITY_FLAG);
+
+        string = string.concat("\n");
 
         if(getFlag(Flags.CARRY_FLAG))
             string = string.concat("Set = " + Flags.CARRY_FLAG);
         else
             string = string.concat("Not Set = " + Flags.CARRY_FLAG);
+
+        string = string.concat("\n");
 
         return string;
     }

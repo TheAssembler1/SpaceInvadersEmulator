@@ -3,9 +3,6 @@ package cpu;
 import memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
-    //NOTE::CHECK opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
-    //NOTE::CHECK opcodes with this spreadsheet https://pastraiser.com/cpu/i8080/i8080_opcodes.html
-
     private interface Opcode{
         void execute();
     }
@@ -246,6 +243,19 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xD5] = () -> pushOpcode(Register.DE);
         opcodes[0xE5] = () -> pushOpcode(Register.HL);
         opcodes[0xF5] = () -> pushOpcode(Register.AF);
+        //NOTE::RT reg | 3 | 10 | - - - - -
+        opcodes[0xC0] = () -> rtOpcode(Flags.ZERO_FLAG, false);
+        opcodes[0xD0] = () -> rtOpcode(Flags.CARRY_FLAG, false);
+        opcodes[0xE0] = () -> rtOpcode(Flags.PARITY_FLAG, false);
+        opcodes[0xF0] = () -> rtOpcode(Flags.SIGN_FLAG, false);
+
+        opcodes[0xC8] = () -> rtOpcode(Flags.ZERO_FLAG, true);
+        opcodes[0xD8] = () -> rtOpcode(Flags.CARRY_FLAG, true);
+        opcodes[0xE8] = () -> rtOpcode(Flags.PARITY_FLAG, true);
+        opcodes[0xF8] = () -> rtOpcode(Flags.SIGN_FLAG, true);
+
+        opcodes[0xC9] = () -> rtOpcode(null, false);
+        //FIXME::Need to check what this instruction means
     }
 
     public void executeOpcode(short opcode){
@@ -528,6 +538,18 @@ public class Intel8080 extends Intel8080Base{
 
         cycles += 1;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::RT reg | 3 | 10 | - - - - -
+    private void rtOpcode(Flags flag, boolean flagTruth){
+        if(flag != null)
+            if((flagTruth && !getFlag(flag)) || !flagTruth && getFlag(flag))
+                return;
+
+        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) - 2));
+
+        cycles += 2;
+        setRegisterValue(Register.PC, mmu.readShortData(getRegisterValue(Register.SP)));
     }
 
     @Override

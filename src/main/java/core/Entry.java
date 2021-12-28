@@ -1,7 +1,15 @@
+//NOTE::Check the working of the emulator https://altairclone.com/downloads/manuals/8080%20Programmers%20Manual.pdf
+//NOTE::CHECK opcodes with these instructions http://www.emulator101.com/reference/8080-by-opcode.html
+//NOTE::CHECK opcodes with this spreadsheet https://pastraiser.com/cpu/i8080/i8080_opcodes.html
+
 package core;
 
 import cpu.Intel8080;
+import debug.Debugger;
 import memory.Mmu;
+import util.Window;
+
+import javax.swing.*;
 
 public class Entry {
     public static void main(String[] args) {
@@ -13,10 +21,13 @@ public class Entry {
         System.out.println(mmu);
         System.out.println(cpu);
 
+        Debugger debugger = new Debugger(cpu);
+
         boolean running = true;
 
         while(running){
             cpu.executeOpcode(mmu.readOpcode(cpu.getPCReg()));
+            debugger.update();
         }
     }
 }
