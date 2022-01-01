@@ -1,6 +1,6 @@
-package cpu;
+package core.cpu;
 
-import memory.Mmu;
+import core.memory.Mmu;
 
 import java.nio.ByteBuffer;
 
@@ -22,7 +22,7 @@ public abstract class Intel8080Base{
         short pc;
     }
 
-    //NOTE::M stands for memory; needed for opcodes
+    //NOTE::M stands for core.memory; needed for opcodes
     protected enum Register {
         AF, BC, DE, HL,
         A, F, B, C, D, E, H, L,
@@ -275,51 +275,36 @@ public abstract class Intel8080Base{
         return registers.pc;
     }
 
-    @Override
-    public String toString(){
-        String string = "Registers:\n";
-        string = string.concat(String.format("AF: %x | A: %x | F: %x\n", getRegisterPairValue(Register.AF), registers.a, registers.f));
-        string = string.concat(String.format("BC: %x | B: %x | C: %x\n", getRegisterPairValue(Register.BC), registers.b, registers.c));
-        string = string.concat(String.format("DE: %x | D: %x | E: %x\n", getRegisterPairValue(Register.DE), registers.d, registers.e));
-        string = string.concat(String.format("HL: %x | H: %x | L: %x\n", getRegisterPairValue(Register.HL), registers.h, registers.l));
-        string = string.concat(String.format("SP: %x\n", registers.sp));
-        string = string.concat(String.format("PC: %x\n\n", registers.pc));
+    protected String registersToString(){
+        String string = "";
 
-        string = string.concat("Flags:\n");
-        if(getFlag(Flags.SIGN_FLAG))
-            string = string.concat("Set = " + Flags.SIGN_FLAG);
-        else
-            string = string.concat("Not Set = " + Flags.SIGN_FLAG);
+        string = string.concat(String.format("AF: %4x | A: %2x | F: %2x\n", getRegisterPairValue(Register.AF), registers.a, registers.f));
+        string = string.concat(String.format("BC: %4x | B: %2x | C: %2x\n", getRegisterPairValue(Register.BC), registers.b, registers.c));
+        string = string.concat(String.format("DE: %4x | D: %2x | E: %2x\n", getRegisterPairValue(Register.DE), registers.d, registers.e));
+        string = string.concat(String.format("HL: %4x | H: %2x | L: %2x\n", getRegisterPairValue(Register.HL), registers.h, registers.l));
+        string = string.concat(String.format("SP: %4x\n", registers.sp));
+        string = string.concat(String.format("PC: %4x", registers.pc));
 
-        string = string.concat("\n");
+        return string;
+    }
 
-        if(getFlag(Flags.ZERO_FLAG))
-            string = string.concat("Set = " + Flags.ZERO_FLAG);
-        else
-            string = string.concat("Not Set = " + Flags.ZERO_FLAG);
+    protected String flagsToString(){
+        String string = "";
 
-        string = string.concat("\n");
+        string = string.concat(String.format("%-12s", "Sign Flag"));
+        string = (getFlag(Flags.SIGN_FLAG)) ? string.concat(": True\n") : string.concat(": False\n");
 
-        if(getFlag(Flags.AUXILIARY_CARRY_FLAG))
-            string = string.concat("Set = " + Flags.AUXILIARY_CARRY_FLAG);
-        else
-            string = string.concat("Not Set = " + Flags.AUXILIARY_CARRY_FLAG);
+        string = string.concat(String.format("%-12s", "Zero Flag"));
+        string = (getFlag(Flags.ZERO_FLAG)) ? string.concat(": True\n") : string.concat(": False\n");
 
-        string = string.concat("\n");
+        string = string.concat(String.format("%-12s", "Aux Flag"));
+        string = (getFlag(Flags.AUXILIARY_CARRY_FLAG)) ? string.concat(": True\n") : string.concat(": False\n");
 
-        if(getFlag(Flags.PARITY_FLAG))
-            string = string.concat("Set = " + Flags.PARITY_FLAG);
-        else
-            string = string.concat("Not Set = " + Flags.PARITY_FLAG);
+        string = string.concat(String.format("%-12s", "Parity Flag"));
+        string = (getFlag(Flags.PARITY_FLAG)) ? string.concat(": True\n") : string.concat(": False\n");
 
-        string = string.concat("\n");
-
-        if(getFlag(Flags.CARRY_FLAG))
-            string = string.concat("Set = " + Flags.CARRY_FLAG);
-        else
-            string = string.concat("Not Set = " + Flags.CARRY_FLAG);
-
-        string = string.concat("\n");
+        string = string.concat(String.format("%-12s", "Carry Flag"));
+        string = (getFlag(Flags.CARRY_FLAG)) ? string.concat(": True") : string.concat(": False");
 
         return string;
     }

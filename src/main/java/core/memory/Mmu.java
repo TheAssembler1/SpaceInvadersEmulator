@@ -1,4 +1,4 @@
-package memory;
+package core.memory;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,12 +24,12 @@ public class Mmu {
         return memory.get(address);
     }
 
-    //NOTE::Set 16 bits of data to memory formatted with little endianness
+    //NOTE::Set 16 bits of data to core.memory formatted with little endianness
     public void setShortData(short address, short value) {
         memory.putShort(address, value);
     }
 
-    //NOTE::Set 8 bits of data to memory
+    //NOTE::Set 8 bits of data to core.memory
     public void setByteData(short address, byte value) {
         memory.put(address, value);
     }

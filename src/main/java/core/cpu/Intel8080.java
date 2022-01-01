@@ -1,6 +1,6 @@
-package cpu;
+package core.cpu;
 
-import memory.Mmu;
+import core.memory.Mmu;
 
 public class Intel8080 extends Intel8080Base{
     private interface Opcode{
@@ -549,8 +549,11 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(Register.PC, mmu.readShortData(getRegisterValue(Register.SP)));
     }
 
-    @Override
-    public String toString(){
-        return super.toString();
+    public String registersToString(){
+        return super.registersToString();
+    }
+
+    public String flagsToString(){
+        return super.flagsToString();
     }
 }

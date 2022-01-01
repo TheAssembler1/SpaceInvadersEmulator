@@ -4,12 +4,9 @@
 
 package core;
 
-import cpu.Intel8080;
+import core.cpu.Intel8080;
 import debug.Debugger;
-import memory.Mmu;
-import util.Window;
-
-import javax.swing.*;
+import core.memory.Mmu;
 
 public class Entry {
 
