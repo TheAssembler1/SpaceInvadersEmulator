@@ -9,6 +9,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class Debugger{
+    Insets textFieldInsets = new Insets(1, 2, 1, 2);
+    Font fontTextArea = new Font(Font.SERIF, Font.PLAIN, 14);
+    Font fontTextField = new Font(Font.SERIF, Font.BOLD, 14);
+
     Intel8080 cpu;
     Window window;
 
@@ -19,9 +23,11 @@ public class Debugger{
     Box horizontalBox = Box.createHorizontalBox();
     Box verticalBox = Box.createVerticalBox();
 
+    //NOTE::Titles for the text areas
     JTextField registersTextField = new JTextField("Registers");
     JTextField flagsTextField = new JTextField("Flags");
 
+    //NOTE::Actual text areas
     JTextArea registersTextArea = new JTextArea("");
     JTextArea flagsTextArea = new JTextArea("");
 
@@ -29,29 +35,53 @@ public class Debugger{
     JRadioButton runInstructions = new JRadioButton("Run Instructions");
     JRadioButton stepInstructions = new JRadioButton("Step Instructions");
     //NOTE::Group of buttons controlling whether we run normally or are stepping over each instruction
-    ButtonGroup runMode = new ButtonGroup();
+    ButtonGroup runModeButtons = new ButtonGroup();
     JButton nextInstruction = new JButton("Next Instruction");
 
     //NOTE::Boolean to know whether to step instructions or what
-    boolean stepThroughInstructions = true;
+    boolean stepThroughInstructions = false;
     //NOTE::Boolean to know where to step to next instruction
     volatile boolean stepThroughNextInstruction = false;
 
-    public Debugger(Intel8080 cpu){
-        this.cpu = cpu;
+    //NOTE::Sets the defualt runMode
+    public enum RunMode{
+        RUN_INSTRUCTIONS, STEP_INSTRUCTIONS
+    }
 
+    public Debugger(Intel8080 cpu, RunMode runMode){
+        this.cpu = cpu;
         window = new Window("Debugger");
 
+        //NOTE::Setting the properties of the widgets
         setWindowProperties();
         setPanelProperties();
         setTextProperties();
         setButtonProperties();
+
+        //NOTE::Setting the initial runMode
+        setRunMode(runMode);
+
+        //NOTE::Setting the button callback methods
         setButtonCallbacks();
+
+        //NOTE::Adding all of the widgets
         addWidgets();
 
         //NOTE::Finalizing the window and making it visible
         window.pack();
         window.setVisible(true);
+    }
+
+    //NOTE::Setting initial run mode button states
+    private void setRunMode(RunMode runMode){
+        if(runMode == RunMode.RUN_INSTRUCTIONS){
+            runModeButtons.setSelected(runInstructions.getModel(), true);
+            stepThroughInstructions = false;
+        }else{
+            System.out.println("TEST");
+            runModeButtons.setSelected(stepInstructions.getModel(), true);
+            stepThroughInstructions = true;
+        }
     }
 
     private void addWidgets(){
@@ -87,11 +117,8 @@ public class Debugger{
 
     private void setButtonProperties(){
         //NOTE::Group of buttons controlling whether we run normally or are stepping over each instruction
-        runMode.add(runInstructions);
-        runMode.add(stepInstructions);
-
-        //NOTE::Setting initial run mode button states
-        runMode.setSelected(stepInstructions.getModel(), true);
+        runModeButtons.add(runInstructions);
+        runModeButtons.add(stepInstructions);
 
         //NOTE::Setting properties of the buttons
         runInstructions.setFocusPainted(false);
@@ -103,21 +130,25 @@ public class Debugger{
 
     private void setTextProperties(){
         //NOTE::Setting properties of the textArea and textFields
-        Font fontArea = new Font(Font.SERIF, Font.PLAIN, 14);
-        Font fontField = new Font(Font.SERIF, Font.BOLD, 14);
-        Border border = BorderFactory.createEtchedBorder();
+        Border etchedBorder = BorderFactory.createEtchedBorder();
+        Border insetsBorder = BorderFactory.createEmptyBorder(
+                textFieldInsets.top,
+                textFieldInsets.left,
+                textFieldInsets.bottom,
+                textFieldInsets.right
+        );
 
         //NOTE::Setting the border of the text fields
-        registersTextArea.setBorder(BorderFactory.createCompoundBorder(border, BorderFactory.createEmptyBorder(1, 2, 1, 2)));
-        flagsTextArea.setBorder(BorderFactory.createCompoundBorder(border, BorderFactory.createEmptyBorder(1, 2, 1, 2)));
-        registersTextField.setBorder(BorderFactory.createCompoundBorder(border, BorderFactory.createEmptyBorder(1, 2, 1, 2)));
-        flagsTextField.setBorder(BorderFactory.createCompoundBorder(border, BorderFactory.createEmptyBorder(1, 2, 1, 2)));
+        registersTextArea.setBorder(BorderFactory.createCompoundBorder(etchedBorder, insetsBorder));
+        flagsTextArea.setBorder(BorderFactory.createCompoundBorder(etchedBorder, insetsBorder));
+        registersTextField.setBorder(BorderFactory.createCompoundBorder(etchedBorder, insetsBorder));
+        flagsTextField.setBorder(BorderFactory.createCompoundBorder(etchedBorder,insetsBorder));
 
         //NOTE::Setting the font of the text fields
-        registersTextArea.setFont(fontArea);
-        flagsTextArea.setFont(fontArea);
-        registersTextField.setFont(fontField);
-        flagsTextField.setFont(fontField);
+        registersTextArea.setFont(fontTextArea);
+        flagsTextArea.setFont(fontTextArea);
+        registersTextField.setFont(fontTextField);
+        flagsTextField.setFont(fontTextField);
 
         //NOTE::Making the text fields non-editable
         registersTextArea.setEditable(false);
@@ -159,7 +190,8 @@ public class Debugger{
         nextInstruction.addActionListener((ActionEvent e) -> {
             System.out.println("INFO::Next Instruction");
 
-            stepThroughNextInstruction = true;
+            if(stepThroughInstructions)
+                stepThroughNextInstruction = true;
         });
     }
 

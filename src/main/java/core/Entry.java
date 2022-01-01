@@ -8,6 +8,7 @@ import core.cpu.Intel8080;
 import debug.Debugger;
 import core.memory.Mmu;
 
+
 public class Entry {
 
     @SuppressWarnings("InfiniteLoopStatement")
@@ -17,7 +18,7 @@ public class Entry {
 
         Intel8080 cpu = new Intel8080(mmu);
 
-        Debugger debugger = new Debugger(cpu);
+        Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
 
         while(true){
             //NOTE::Converting signed byte to unsigned int
