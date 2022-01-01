@@ -21,9 +21,12 @@ public class Entry {
         Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
 
         while(true){
+            short opcode = (short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));
+
+            //NOTE::Updating the debugger
+            debugger.update(opcode);
             //NOTE::Converting signed byte to unsigned int
-            cpu.executeOpcode((short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg())));
-            debugger.update();
+            cpu.executeOpcode(opcode);
         }
     }
 }

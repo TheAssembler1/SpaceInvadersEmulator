@@ -176,7 +176,7 @@ public class Debugger{
         //NOTE::Setting initial state of text in text areas
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
-        opcodeStringField.setText(cpu.opcodeToString());
+        opcodeStringField.setText(cpu.opcodeToString((short) 0));
     }
 
     //NOTE::Method is used to set button callbacks
@@ -203,7 +203,7 @@ public class Debugger{
         });
     }
 
-    public void update(){
+    public void update(short opcode){
         //NOTE::Checking if we are stepping through instructions
         if(stepThroughInstructions){
             while(!stepThroughNextInstruction)
@@ -213,6 +213,6 @@ public class Debugger{
 
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
-        opcodeStringField.setText(cpu.opcodeToString());
+        opcodeStringField.setText(cpu.opcodeToString(opcode));
     }
 }

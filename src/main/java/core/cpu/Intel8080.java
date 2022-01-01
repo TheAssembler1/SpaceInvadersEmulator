@@ -557,7 +557,7 @@ public class Intel8080 extends Intel8080Base{
         return super.flagsToString();
     }
 
-    public String opcodeToString(){
-        return getOpcodeString((short) Byte.toUnsignedInt(mmu.readOpcode(getPCReg())));
+    public String opcodeToString(short opcode){
+        return getOpcodeString(opcode);
     }
 }
