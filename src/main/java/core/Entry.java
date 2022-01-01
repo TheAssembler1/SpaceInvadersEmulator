@@ -12,21 +12,19 @@ import util.Window;
 import javax.swing.*;
 
 public class Entry {
+
+    @SuppressWarnings("InfiniteLoopStatement")
     public static void main(String[] args) {
         Mmu mmu = new Mmu(0x1FFF + 1);
         mmu.loadRom();
 
         Intel8080 cpu = new Intel8080(mmu);
 
-        System.out.println(mmu);
-        System.out.println(cpu);
-
         Debugger debugger = new Debugger(cpu);
 
-        boolean running = true;
-
-        while(running){
-            cpu.executeOpcode(mmu.readOpcode(cpu.getPCReg()));
+        while(true){
+            //NOTE::Converting signed byte to unsigned int
+            cpu.executeOpcode((short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg())));
             debugger.update();
         }
     }

@@ -259,7 +259,6 @@ public class Intel8080 extends Intel8080Base{
     }
 
     public void executeOpcode(short opcode){
-        System.out.println(this);
         opcodes[opcode].execute();
     }
 
@@ -517,8 +516,6 @@ public class Intel8080 extends Intel8080Base{
         }
         else
             setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
-
-        System.out.println(getRegisterValue(Register.PC) + "------------------------");
 
         cycles += 3;
     }
