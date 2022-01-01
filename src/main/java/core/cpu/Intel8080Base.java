@@ -4,7 +4,7 @@ import core.memory.Mmu;
 
 import java.nio.ByteBuffer;
 
-public abstract class Intel8080Base{
+public abstract class Intel8080Base extends Intel8080Strings{
     private static class Registers {
         byte a;
         byte f;
