@@ -82,6 +82,7 @@ public class Debugger{
             System.out.println("TEST");
             runModeButtons.setSelected(stepInstructions.getModel(), true);
             stepThroughInstructions = true;
+            stepThroughNextInstruction = true;
         }
     }
 
