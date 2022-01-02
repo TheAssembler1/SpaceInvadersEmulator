@@ -13,7 +13,13 @@ public class Entry {
 
     @SuppressWarnings("InfiniteLoopStatement")
     public static void main(String[] args) {
-        Mmu mmu = new Mmu(0x1FFF + 1);
+        /*
+         * 0000-1FFF 8K ROM
+         * 2000-23FF 1K RAM
+         * 2400-3FFF 7K Video RAM
+         * 4000- RAM mirror
+         */
+        Mmu mmu = new Mmu(0x4000 + 1);
         mmu.loadRom();
 
         Intel8080 cpu = new Intel8080(mmu);
