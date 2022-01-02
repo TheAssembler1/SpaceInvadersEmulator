@@ -5,6 +5,7 @@
 package core;
 
 import core.cpu.Intel8080;
+import core.gpu.Gpu;
 import debug.Debugger;
 import core.memory.Mmu;
 
@@ -37,6 +38,7 @@ public class Entry {
         mmu.loadRom();
 
         Intel8080 cpu = new Intel8080(mmu);
+        Gpu gpu = new Gpu(cpu);
 
         Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
 
@@ -46,6 +48,8 @@ public class Entry {
             debugger.update(opcode);
             //NOTE::Converting signed byte to unsigned int
             cpu.executeOpcode(opcode);
+            //NOTE::Rendering pixel window
+            gpu.repaint();
         }
     }
 }

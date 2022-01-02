@@ -278,6 +278,14 @@ public abstract class Intel8080Base extends Intel8080Strings{
         return registers.pc;
     }
 
+    public boolean checkBitOfByte(short value, byte pos){
+        return (byte) ((value) & (0x01 << pos)) == 1;
+    }
+
+    public byte[] getPixelBuffer(){
+        return mmu.getPixelBuffer();
+    }
+
     protected String registersToString(){
         String string = "";
 

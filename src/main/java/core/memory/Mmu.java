@@ -1,5 +1,7 @@
 package core.memory;
 
+import core.gpu.Gpu;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -38,7 +40,7 @@ public class Mmu {
     public byte readOpcode(short address){ return (byte)memory.getChar(address); }
 
     //NOTE::Reads the Space Invaders' rom files
-    //NOTE::Memory layout of the game
+    //NOTE::Memory layout of the ROM
     /*
      * invaders.h 0x0000-0x07FF
      * invaders.g 0x0800-0x0FFF
@@ -84,6 +86,20 @@ public class Mmu {
         }catch(NullPointerException | IOException e){
             System.out.println(e);
         }
+    }
+
+    //Memory with pixel buffer 2400 - 3FFF
+    public byte[] getPixelBuffer(){
+        short startPixelBuffer = 0x2400;
+        short endPixelBuffer = 0x3FFF;
+
+        int pixelBufferSize = Gpu.getScreenXResolution() * Gpu.getScreenYResolution();
+        byte[] pixelBuffer = new byte[pixelBufferSize];
+
+        for(int i = startPixelBuffer; i <= endPixelBuffer; i++)
+            pixelBuffer[i - startPixelBuffer] = memory.get(i);
+
+        return pixelBuffer;
     }
 
     @Override
