@@ -255,7 +255,22 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xF8] = () -> rtOpcode(Flags.SIGN_FLAG, true);
 
         opcodes[0xC9] = () -> rtOpcode(null, false);
-        //FIXME::Need to check what this instruction means
+        opcodes[0xD9] = () -> rtOpcode(null, false);
+        //CF a16 | 3 | 17/11 | - - - - -
+        opcodes[0xC4] = () ->callOpcode(Flags.ZERO_FLAG, false);
+        opcodes[0xD4] = () ->callOpcode(Flags.CARRY_FLAG, false);
+        opcodes[0xE4] = () ->callOpcode(Flags.PARITY_FLAG, false);
+        opcodes[0xF4] = () ->callOpcode(Flags.SIGN_FLAG, false);
+        //CT a16 | 3 | 17/11 | - - - - -
+        opcodes[0xCC] = () ->callOpcode(Flags.ZERO_FLAG, true);
+        opcodes[0xDC] = () ->callOpcode(Flags.CARRY_FLAG, true);
+        opcodes[0xEC] = () ->callOpcode(Flags.PARITY_FLAG, true);
+        opcodes[0xFC] = () ->callOpcode(Flags.SIGN_FLAG, true);
+        //CALL a16 | 3 | 7 | - - - -
+        opcodes[0xCD] = () ->callOpcode(null, false);
+        opcodes[0xDD] = () ->callOpcode(null, false);
+        opcodes[0xED] = () ->callOpcode(null, false);
+        opcodes[0xFD] = () ->callOpcode(null, false);
     }
 
     public void executeOpcode(short opcode){
@@ -537,6 +552,7 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
+    //FIXME::This is just wrong I think. Mimic the callOpcode method
     //NOTE::RT reg | 3 | 10 | - - - - -
     private void rtOpcode(Flags flag, boolean flagTruth){
         if(flag != null)
@@ -547,6 +563,23 @@ public class Intel8080 extends Intel8080Base{
 
         cycles += 2;
         setRegisterValue(Register.PC, mmu.readShortData(getRegisterValue(Register.SP)));
+    }
+
+    //CALL a16 | 3 | 7 | - - - -
+    //CT a16 | 3 | 17/11 | - - - - -
+    //CF a16 | 3 | 17/11 | - - - - -
+    private void callOpcode(Flags flag, boolean flagTruth) {
+        //NOTE::We know we at least have to cycle this many times
+        cycles += 7;
+
+        //NOTE::Checking if we should not jump
+        if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles += 4; return; } else { cycles += 10; }
+
+        //NOTE::Setting the stack pointer
+        mmu.setShortData(getRegisterValue(Register.SP), (short) (getRegisterValue(Register.PC) + 3));
+        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
+
+        setRegisterValue(Register.PC, mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
     }
 
     public String registersToString(){
