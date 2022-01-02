@@ -124,6 +124,7 @@ public abstract class Intel8080Base extends Intel8080Strings{
     }
 
     protected void checkSetZeroFlag(short value){
+        System.out.println(value);
         if(value == 0)
             setFlag(FlagChoice.NULL, FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
         else

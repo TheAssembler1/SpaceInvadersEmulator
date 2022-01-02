@@ -555,6 +555,11 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag((short) Byte.toUnsignedInt(result));
         checkSetCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
+        System.out.println("__________________");
+        System.out.printf("PrevValue: %x\n", prevValue);
+        System.out.printf("ReadValue: %x\n", readValue);
+        System.out.println(flagsToString());
+
         cycles += 2;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
     }
@@ -562,7 +567,7 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
     private void jmpOpcode(Flags flag, FlagChoice flagChoice){
         if(flagChoice == FlagChoice.NULL || (getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
-                setRegisterValue(Register.PC, (short) (mmu.readShortData((short) (getRegisterValue(Register.PC) + 1))));
+                setRegisterValue(Register.PC, (mmu.readShortData((short) (getRegisterValue(Register.PC) + 1))));
                 cycles += 7;
         }
         else
