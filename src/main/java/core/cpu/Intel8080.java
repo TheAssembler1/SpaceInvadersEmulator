@@ -272,7 +272,7 @@ public class Intel8080 extends Intel8080Base{
     private void lxiOpcode(Register reg){
         setRegisterValue(reg, mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
 
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
         cycles += 10;
     }
 
@@ -370,7 +370,7 @@ public class Intel8080 extends Intel8080Base{
         else { mmu.setByteData(getRegisterValue(Register.HL), mmu.readByteData((short) (getRegisterValue(Register.PC) + 1))); cycles += 3; }
 
         cycles += 7;
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
     }
 
     //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
