@@ -257,20 +257,28 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xC9] = () -> rtOpcode(null, false);
         opcodes[0xD9] = () -> rtOpcode(null, false);
         //CF a16 | 3 | 17/11 | - - - - -
-        opcodes[0xC4] = () ->callOpcode(Flags.ZERO_FLAG, false);
-        opcodes[0xD4] = () ->callOpcode(Flags.CARRY_FLAG, false);
-        opcodes[0xE4] = () ->callOpcode(Flags.PARITY_FLAG, false);
-        opcodes[0xF4] = () ->callOpcode(Flags.SIGN_FLAG, false);
+        opcodes[0xC4] = () -> callOpcode(Flags.ZERO_FLAG, false);
+        opcodes[0xD4] = () -> callOpcode(Flags.CARRY_FLAG, false);
+        opcodes[0xE4] = () -> callOpcode(Flags.PARITY_FLAG, false);
+        opcodes[0xF4] = () -> callOpcode(Flags.SIGN_FLAG, false);
         //CT a16 | 3 | 17/11 | - - - - -
-        opcodes[0xCC] = () ->callOpcode(Flags.ZERO_FLAG, true);
-        opcodes[0xDC] = () ->callOpcode(Flags.CARRY_FLAG, true);
-        opcodes[0xEC] = () ->callOpcode(Flags.PARITY_FLAG, true);
-        opcodes[0xFC] = () ->callOpcode(Flags.SIGN_FLAG, true);
+        opcodes[0xCC] = () -> callOpcode(Flags.ZERO_FLAG, true);
+        opcodes[0xDC] = () -> callOpcode(Flags.CARRY_FLAG, true);
+        opcodes[0xEC] = () -> callOpcode(Flags.PARITY_FLAG, true);
+        opcodes[0xFC] = () -> callOpcode(Flags.SIGN_FLAG, true);
         //CALL a16 | 3 | 7 | - - - -
-        opcodes[0xCD] = () ->callOpcode(null, false);
-        opcodes[0xDD] = () ->callOpcode(null, false);
-        opcodes[0xED] = () ->callOpcode(null, false);
-        opcodes[0xFD] = () ->callOpcode(null, false);
+        opcodes[0xCD] = () -> callOpcode(null, false);
+        opcodes[0xDD] = () -> callOpcode(null, false);
+        opcodes[0xED] = () -> callOpcode(null, false);
+        opcodes[0xFD] = () -> callOpcode(null, false);
+        //NOTE::LDAX reg | 1 | 7 | - - - - -
+        opcodes[0x0A] = () -> ldaxOpcode(Register.BC);
+        opcodes[0x1A] = () -> ldaxOpcode(Register.DE);
+        //NOTE::LHLD a16 | 3 | 16 | - - - - -
+        opcodes[0x2A] = this::lhldOpcode;
+        //NOTE::LDA a16 | 3 | 13 | - - - - -
+        opcodes[0x3A] = this::ldaOpcode;
+
     }
 
     public void executeOpcode(short opcode){
@@ -334,10 +342,10 @@ public class Intel8080 extends Intel8080Base{
 
         result = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.ADD, prevValue, result);
-        checkSetParityFlag(result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.ADD, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
 
         cycles += 5;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -354,10 +362,10 @@ public class Intel8080 extends Intel8080Base{
 
         result = (reg != Register.M) ? (byte) getRegisterValue(reg) : mmu.readByteData(getRegisterValue(Register.HL));
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
-        checkSetParityFlag(result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short)Byte.toUnsignedInt(result));
 
         cycles += 5;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -402,11 +410,11 @@ public class Intel8080 extends Intel8080Base{
 
         result = (byte) getRegisterValue(Register.A);
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.ADD, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.ADD, prevValue, result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.ADD, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.ADD, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
         cycles += 4;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -426,11 +434,11 @@ public class Intel8080 extends Intel8080Base{
 
         result = (byte) getRegisterValue(Register.A);
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.SUB, prevValue, result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
         cycles += 4;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -447,11 +455,11 @@ public class Intel8080 extends Intel8080Base{
 
         result = (byte) getRegisterValue(Register.A);
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.AND, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.AND, prevValue, result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.AND, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.AND, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
         cycles += 4;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -468,11 +476,11 @@ public class Intel8080 extends Intel8080Base{
 
         result = (byte) getRegisterValue(Register.A);
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.XOR, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.XOR, prevValue, result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.XOR, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.XOR, prevValue, (short) Byte.toUnsignedInt(result));
 
         cycles += 4;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -489,11 +497,11 @@ public class Intel8080 extends Intel8080Base{
 
         result = (byte) getRegisterValue(Register.A);
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.OR, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.OR, prevValue, result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.OR, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.OR, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
         cycles += 4;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -513,11 +521,11 @@ public class Intel8080 extends Intel8080Base{
             result = (byte) (getRegisterValue(Register.A) - mmu.readByteData(getRegisterValue(Register.HL))); cycles += 3;
         }
 
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.SUB, prevValue, result);
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), result);
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
         cycles += 4;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -580,6 +588,30 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
 
         setRegisterValue(Register.PC, mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
+    }
+
+    //NOTE::LDAX reg | 1 | 7 | - - - - -
+    private void ldaxOpcode(Register reg) {
+        setRegisterValue(Register.A, mmu.readByteData(getRegisterValue(reg)));
+
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
+        cycles += 7;
+    }
+
+    //NOTE::LHLD a16 | 3 | 16 | - - - - -
+    private void lhldOpcode(){
+        setRegisterValue(Register.HL, mmu.readShortData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1))));
+
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
+        cycles += 16;
+    }
+
+    //NOTE::LDA a16 | 3 | 13 | - - - - -
+    private void ldaOpcode(){
+        setRegisterValue(Register.A, mmu.readByteData(mmu.readShortData((short) (getRegisterValue(Register.PC) + 1))));
+
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
+        cycles += 16;
     }
 
     public String registersToString(){

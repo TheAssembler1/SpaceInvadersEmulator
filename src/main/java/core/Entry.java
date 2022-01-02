@@ -24,10 +24,11 @@ public class Entry {
 
         Intel8080 cpu = new Intel8080(mmu);
 
-        Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
+        Debugger debugger = new Debugger(cpu, Debugger.RunMode.RUN_INSTRUCTIONS);
 
         while(true){
             short opcode = (short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));
+            System.out.printf("INFO::Opcode to be executed: %x\n", opcode);
             //NOTE::Updating the debugger
             debugger.update(opcode);
             //NOTE::Converting signed byte to unsigned int

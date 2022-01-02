@@ -115,9 +115,9 @@ public abstract class Intel8080Base extends Intel8080Strings{
         return bb.getShort(0);
     }
 
-    protected void checkSetSignFlag(byte value){
+    protected void checkSetSignFlag(short value){
         //FIXME::This method needs to be tested
-        if((((byte)value >> 0x7) & 1) == 1)
+        if(((value >> 0x7) & 1) == 1)
             setFlag(FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
         else
             setFlag(FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
@@ -130,7 +130,7 @@ public abstract class Intel8080Base extends Intel8080Strings{
             setFlag(FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
     }
 
-    protected void checkSetAuxiliaryCarryFlag(Operation operation, byte value1, byte value2){
+    protected void checkSetAuxiliaryCarryFlag(Operation operation, short value1, short value2){
         switch(operation){
             case ADD -> {
                 if((((value1 & 0xF) + (value2 & 0xF)) & 0x10) == 0x10)
@@ -147,7 +147,8 @@ public abstract class Intel8080Base extends Intel8080Strings{
         }
     }
 
-    protected void checkSetParityFlag(byte value){
+    //FIMXE::Currently getting stuck in this method
+    protected void checkSetParityFlag(short value){
         //FIXME::This method needs to be tested
         int parity = 0;
         while(value >> 1 != 0){
@@ -161,32 +162,34 @@ public abstract class Intel8080Base extends Intel8080Strings{
             setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL);
     }
 
-    protected void checkSetCarryFlag(Operation operation, byte value1, byte value2){
-        byte result = 0;
+    protected void checkSetCarryFlag(Operation operation, short value1, short value2){
+        short result = 0;
 
         //FIXME::This method needs to be tested
         switch(operation){
             case ADD -> {
-                result = (byte) (value1 + value2);
+                if((((value1 & 0xf) + (value2 & 0xf)) & 0x10) == 0x10)
+                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
             }
             case SUB -> {
-                result = (byte) (value1 - value2);
+                if((((value1 & 0xf) - (value2 & 0xf)) & 0x10) == 0x10)
+                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
             }
             case AND -> {
-                result = (byte) (value1 & value2);
+                if((((value1 & 0xf) & (value2 & 0xf)) & 0x10) == 0x10)
+                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
             }
             case OR -> {
-                result = (byte) (value1 | value2);
+                if((((value1 & 0xf) | (value2 & 0xf)) & 0x10) == 0x10)
+                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
             }
             case XOR -> {
-                result = (byte) (value1 ^ value2);
+                if((((value1 & 0xf) ^ (value2 & 0xf)) & 0x10) == 0x10)
+                    setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
             }
         }
 
-        if(result < 0)
-            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
-        else
-            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
+        setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
     }
 
     protected void setFlag(FlagChoice signFlag, FlagChoice ZERO_FLAG, FlagChoice auxiliaryCarryFlag, FlagChoice parityFlag, FlagChoice carryFlag){
