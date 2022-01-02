@@ -8,6 +8,20 @@ import core.cpu.Intel8080;
 import debug.Debugger;
 import core.memory.Mmu;
 
+//FIXME::Current bit that's causing the error
+/*
+ClearScreen:
+; Clear the screen
+; Thanks to Mark Tankard for pointing out what this really does
+1A5C: 21 00 24        LD      HL,$2400            ; Screen coordinate
+1A5F: 36 00           LD      (HL),$00            ; Clear it
+1A61: 23              INC     HL                  ; Next byte
+1A62: 7C              LD      A,H                 ; Have we done ...
+1A63: FE 40           CP      $40                 ; ... all the screen? //FIXME::Check that this compare method is working
+1A65: C2 5F 1A        JP      NZ,$1A5F            ; No ... keep going
+1A68: C9              RET                         ; Out
+ */
+
 
 public class Entry {
 
@@ -24,11 +38,10 @@ public class Entry {
 
         Intel8080 cpu = new Intel8080(mmu);
 
-        Debugger debugger = new Debugger(cpu, Debugger.RunMode.RUN_INSTRUCTIONS);
+        Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
 
         while(true){
             short opcode = (short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));
-            System.out.printf("INFO::Opcode to be executed: %x\n", opcode);
             //NOTE::Updating the debugger
             debugger.update(opcode);
             //NOTE::Converting signed byte to unsigned int

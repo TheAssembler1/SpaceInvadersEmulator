@@ -278,7 +278,11 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x2A] = this::lhldOpcode;
         //NOTE::LDA a16 | 3 | 13 | - - - - -
         opcodes[0x3A] = this::ldaOpcode;
-
+        //ACI/SBI/XRI/CPI d8 | 2 | 7 | S Z A P C
+        opcodes[0xCE] = () -> cpiOpcode(Operation.ADD);
+        opcodes[0xDE] = () -> cpiOpcode(Operation.SUB);
+        opcodes[0xEE] = () -> cpiOpcode(Operation.XOR);
+        opcodes[0xFE] = () -> cpiOpcode(Operation.NULL);
     }
 
     public void executeOpcode(short opcode){
@@ -531,6 +535,29 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
+    //ACI/SBI/XRI/CPI d8 | 2 | 7 | S Z A P C
+    private void cpiOpcode(Operation operation){
+        byte prevValue = (byte) getRegisterValue(Register.A);
+        byte readValue = mmu.readByteData((short) (getRegisterValue(Register.PC) + 1));
+        byte result = readValue;
+
+        switch (operation){
+            case ADD -> result = (byte) (prevValue + readValue);
+            case SUB -> result = (byte) (prevValue - readValue);
+            case XOR -> result = (byte) (prevValue ^ readValue);
+            case NULL -> {}
+        }
+
+        checkSetSignFlag((short) Byte.toUnsignedInt(result));
+        checkSetZeroFlag((short) Byte.toUnsignedInt(result));
+        checkSetAuxiliaryCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), result);
+        checkSetParityFlag((short) Byte.toUnsignedInt(result));
+        checkSetCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
+
+        cycles += 2;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
+    }
+
     //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
     private void jmpOpcode(Flags flag, FlagChoice flagChoice){
         if(flagChoice == FlagChoice.NULL || (getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
@@ -593,8 +620,8 @@ public class Intel8080 extends Intel8080Base{
     private void ldaxOpcode(Register reg) {
         setRegisterValue(Register.A, mmu.readByteData(getRegisterValue(reg)));
 
-        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
         cycles += 7;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
     //NOTE::LHLD a16 | 3 | 16 | - - - - -

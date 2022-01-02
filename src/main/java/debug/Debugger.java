@@ -27,6 +27,7 @@ public class Debugger{
     JTextField registersTextField = new JTextField("Registers");
     JTextField flagsTextField = new JTextField("Flags");
     JTextField opcodeStringField = new JTextField("");
+    JTextField opcodeNumField = new JTextField("");
 
     //NOTE::Actual text areas
     JTextArea registersTextArea = new JTextArea("");
@@ -100,6 +101,7 @@ public class Debugger{
         verticalBox.add(Box.createVerticalStrut(2));
         verticalBox.add(flagsTextArea);
         verticalBox.add(opcodeStringField);
+        verticalBox.add(opcodeNumField);
 
         //NOTE::Adding boxes to the panel
         panel.add(horizontalBox);
@@ -147,6 +149,7 @@ public class Debugger{
         registersTextField.setBorder(BorderFactory.createCompoundBorder(etchedBorder, insetsBorder));
         flagsTextField.setBorder(BorderFactory.createCompoundBorder(etchedBorder,insetsBorder));
         opcodeStringField.setBorder(BorderFactory.createCompoundBorder(etchedBorder,insetsBorder));
+        opcodeNumField.setBorder(BorderFactory.createCompoundBorder(etchedBorder,insetsBorder));
 
         //NOTE::Setting the font of the text fields
         registersTextArea.setFont(fontTextArea);
@@ -154,6 +157,7 @@ public class Debugger{
         registersTextField.setFont(fontTextField);
         flagsTextField.setFont(fontTextField);
         opcodeStringField.setFont(fontTextField);
+        opcodeNumField.setFont(fontTextField);
 
         //NOTE::Making the text fields non-editable
         registersTextArea.setEditable(false);
@@ -161,23 +165,27 @@ public class Debugger{
         registersTextField.setEditable(false);
         flagsTextField.setEditable(false);
         opcodeStringField.setFont(fontTextField);
+        opcodeNumField.setFont(fontTextField);
 
         //NOTE::Disabling highlighting on text fields
         registersTextArea.setHighlighter(null);
         flagsTextArea.setHighlighter(null);
         registersTextField.setHighlighter(null);
         flagsTextField.setHighlighter(null);
-        opcodeStringField.setFont(fontTextField);
+        opcodeStringField.setHighlighter(null);
+        opcodeNumField.setHighlighter(null);
 
         //NOTE::Have to set background explicitly when disabling editable on text fields
         registersTextField.setBackground(Color.WHITE);
         flagsTextField.setBackground(Color.WHITE);
         opcodeStringField.setBackground(Color.WHITE);
+        opcodeNumField.setBackground(Color.WHITE);
 
         //NOTE::Setting initial state of text in text areas
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
         opcodeStringField.setText(cpu.opcodeToString((short) 0));
+        opcodeNumField.setText(String.format("Hex: %x | Dec: %d", 0, 0));
     }
 
     //NOTE::Method is used to set button callbacks
@@ -215,5 +223,6 @@ public class Debugger{
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
         opcodeStringField.setText(cpu.opcodeToString(opcode));
+        opcodeNumField.setText(String.format("Hex: %x | Dec: %d", opcode, opcode));
     }
 }

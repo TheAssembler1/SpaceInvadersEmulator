@@ -52,7 +52,7 @@ public abstract class Intel8080Base extends Intel8080Strings{
     }
 
     protected enum Operation{
-        ADD, SUB, AND, OR, XOR
+        ADD, SUB, AND, OR, XOR, NULL
     }
 
     protected enum ValueSize {
