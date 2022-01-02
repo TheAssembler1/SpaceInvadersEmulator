@@ -545,7 +545,8 @@ public class Intel8080 extends Intel8080Base{
             case ADD -> result = (byte) (prevValue + readValue);
             case SUB -> result = (byte) (prevValue - readValue);
             case XOR -> result = (byte) (prevValue ^ readValue);
-            case NULL -> {}
+            //FIXME::This is a hack don't know fix this is the correct way for this to get done
+            case NULL -> result = (byte) (prevValue - readValue);
         }
 
         checkSetSignFlag((short) Byte.toUnsignedInt(result));
