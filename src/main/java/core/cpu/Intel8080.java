@@ -243,17 +243,17 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xD5] = () -> pushOpcode(Register.DE);
         opcodes[0xE5] = () -> pushOpcode(Register.HL);
         opcodes[0xF5] = () -> pushOpcode(Register.AF);
-        //NOTE::RT reg | 3 | 10 | - - - - -
+        //NOTE::RF | 1 | 11/5 | - - - - -
         opcodes[0xC0] = () -> rtOpcode(Flags.ZERO_FLAG, false);
         opcodes[0xD0] = () -> rtOpcode(Flags.CARRY_FLAG, false);
         opcodes[0xE0] = () -> rtOpcode(Flags.PARITY_FLAG, false);
         opcodes[0xF0] = () -> rtOpcode(Flags.SIGN_FLAG, false);
-
+        //NOTE::RT | 1 | 11/5 | - - - - -
         opcodes[0xC8] = () -> rtOpcode(Flags.ZERO_FLAG, true);
         opcodes[0xD8] = () -> rtOpcode(Flags.CARRY_FLAG, true);
         opcodes[0xE8] = () -> rtOpcode(Flags.PARITY_FLAG, true);
         opcodes[0xF8] = () -> rtOpcode(Flags.SIGN_FLAG, true);
-
+        //NOTE::RET | 1 | 10 | - - - - -
         opcodes[0xC9] = () -> rtOpcode(null, false);
         opcodes[0xD9] = () -> rtOpcode(null, false);
         //CF a16 | 3 | 17/11 | - - - - -
@@ -560,16 +560,15 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
-    //FIXME::This is just wrong I think. Mimic the callOpcode method
-    //NOTE::RT reg | 3 | 10 | - - - - -
+    //NOTE::RET | 1 | 10 | - - - - -
+    //NOTE::RT | 1 | 11/5 | - - - - -
+    //NOTE::RF | 1 | 11/5 | - - - - -
     private void rtOpcode(Flags flag, boolean flagTruth){
-        if(flag != null)
-            if((flagTruth && !getFlag(flag)) || !flagTruth && getFlag(flag))
-                return;
+        cycles += 10;
+
+        if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles -= 5; return; } else { cycles += 10; }
 
         setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) - 2));
-
-        cycles += 2;
         setRegisterValue(Register.PC, mmu.readShortData(getRegisterValue(Register.SP)));
     }
 
