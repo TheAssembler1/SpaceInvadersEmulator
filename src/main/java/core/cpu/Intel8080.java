@@ -511,7 +511,7 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
     private void jmpOpcode(Flags flag, FlagChoice flagChoice){
         if(flagChoice == FlagChoice.NULL || (getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
-                setRegisterValue(Register.PC, (short) (mmu.readShortData(getRegisterValue(Register.PC)) + 1));
+                setRegisterValue(Register.PC, (short) (mmu.readShortData((short) (getRegisterValue(Register.PC) + 1))));
                 cycles += 7;
         }
         else

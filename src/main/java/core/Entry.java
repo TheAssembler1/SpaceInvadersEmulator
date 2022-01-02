@@ -22,7 +22,6 @@ public class Entry {
 
         while(true){
             short opcode = (short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));
-
             //NOTE::Updating the debugger
             debugger.update(opcode);
             //NOTE::Converting signed byte to unsigned int
