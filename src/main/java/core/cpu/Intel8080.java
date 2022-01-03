@@ -1,6 +1,7 @@
 package core.cpu;
 
 import core.memory.Mmu;
+import debug.Debugger;
 
 public class Intel8080 extends Intel8080Base{
     private interface Opcode{
@@ -558,7 +559,6 @@ public class Intel8080 extends Intel8080Base{
         System.out.println("__________________");
         System.out.printf("PrevValue: %x\n", prevValue);
         System.out.printf("ReadValue: %x\n", readValue);
-        System.out.println(flagsToString());
 
         cycles += 2;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
@@ -588,6 +588,7 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::PUSH reg | 1 | 11 | - - - -
     private void pushOpcode(Register reg){
         mmu.setShortData(getRegisterValue(Register.SP), getRegisterValue(reg));
+        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) - 2));
 
         cycles += 1;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
@@ -598,10 +599,10 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::RF | 1 | 11/5 | - - - - -
     private void rtOpcode(Flags flag, boolean flagTruth){
         cycles += 10;
-
+        //FIXME::Stack pointer is always returning zero
         if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles -= 5; return; } else { cycles += 10; }
 
-        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) - 2));
+        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
         setRegisterValue(Register.PC, mmu.readShortData(getRegisterValue(Register.SP)));
     }
 
@@ -616,8 +617,11 @@ public class Intel8080 extends Intel8080Base{
         if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles += 4; return; } else { cycles += 10; }
 
         //NOTE::Setting the stack pointer
+        System.out.printf("Setting call stack %x\n", (short) (getRegisterValue(Register.PC) + 3));
         mmu.setShortData(getRegisterValue(Register.SP), (short) (getRegisterValue(Register.PC) + 3));
-        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
+        System.out.printf("Reading back call stack %x\n",  mmu.readShortData(getRegisterValue(Register.SP)));
+
+        setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) - 2));
 
         setRegisterValue(Register.PC, mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
     }
