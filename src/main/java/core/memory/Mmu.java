@@ -48,8 +48,6 @@ public class Mmu {
      * invaders.e 0x1800-0x1FFF
      */
     public void loadRom(){
-        System.out.println("SL:DFJ:LSDJL:KSFJLK:DFJ");
-
         int startOfInvadersHRom = 0x0000;
         int endOfInvadersHRom = 0x07FF;
 

@@ -284,6 +284,11 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xDE] = () -> cpiOpcode(Operation.SUB);
         opcodes[0xEE] = () -> cpiOpcode(Operation.XOR);
         opcodes[0xFE] = () -> cpiOpcode(Operation.NULL);
+        //NOTE::DAD reg | 1 |  10 | - - - - C
+        opcodes[0x09] = () -> dadOpcode(Register.BC);
+        opcodes[0x19] = () -> dadOpcode(Register.DE);
+        opcodes[0x29] = () -> dadOpcode(Register.HL);
+        opcodes[0x39] = () -> dadOpcode(Register.SP);
     }
 
     public void executeOpcode(short opcode){
@@ -556,10 +561,6 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag((short) Byte.toUnsignedInt(result));
         checkSetCarryFlag(Operation.SUB, (short) Byte.toUnsignedInt(prevValue), (short) Byte.toUnsignedInt(result));
 
-        System.out.println("__________________");
-        System.out.printf("PrevValue: %x\n", prevValue);
-        System.out.printf("ReadValue: %x\n", readValue);
-
         cycles += 2;
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 2));
     }
@@ -617,10 +618,7 @@ public class Intel8080 extends Intel8080Base{
         if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles += 4; return; } else { cycles += 10; }
 
         //NOTE::Setting the stack pointer
-        System.out.printf("Setting call stack %x\n", (short) (getRegisterValue(Register.PC) + 3));
         mmu.setShortData(getRegisterValue(Register.SP), (short) (getRegisterValue(Register.PC) + 3));
-        System.out.printf("Reading back call stack %x\n",  mmu.readShortData(getRegisterValue(Register.SP)));
-
         setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) - 2));
 
         setRegisterValue(Register.PC, mmu.readShortData((short) (getRegisterValue(Register.PC) + 1)));
@@ -648,6 +646,20 @@ public class Intel8080 extends Intel8080Base{
 
         setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 3));
         cycles += 16;
+    }
+
+    //NOTE::DAD reg | 1 |  10 | - - - - C
+    private void dadOpcode(Register reg){
+        int prevValue = getRegisterValue(Register.HL);
+        int readValue = getRegisterValue(reg);
+        int result = prevValue + getRegisterValue(reg);
+
+        setRegisterValue(Register.HL, (short)result);
+
+        checkSetCarryFlag(Operation.ADD, (short)prevValue, (short)readValue);
+
+        cycles += 10;
+        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
     }
 
     public String registersToString(){

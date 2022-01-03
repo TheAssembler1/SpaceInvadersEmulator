@@ -124,7 +124,6 @@ public abstract class Intel8080Base extends Intel8080Strings{
     }
 
     protected void checkSetZeroFlag(short value){
-        System.out.println(value);
         if(value == 0)
             setFlag(FlagChoice.NULL, FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL);
         else
@@ -148,7 +147,6 @@ public abstract class Intel8080Base extends Intel8080Strings{
         }
     }
 
-    //FIMXE::Currently getting stuck in this method
     protected void checkSetParityFlag(short value){
         //FIXME::This method needs to be tested
         int parity = 0;

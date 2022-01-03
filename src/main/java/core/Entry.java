@@ -40,7 +40,7 @@ public class Entry {
         Intel8080 cpu = new Intel8080(mmu);
         Gpu gpu = new Gpu(cpu);
 
-        Debugger debugger = new Debugger(cpu, Debugger.RunMode.RUN_INSTRUCTIONS);
+        Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
 
         while(true){
             short opcode = (short) Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));

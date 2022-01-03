@@ -80,7 +80,6 @@ public class Debugger{
             runModeButtons.setSelected(runInstructions.getModel(), true);
             stepThroughInstructions = false;
         }else{
-            System.out.println("TEST");
             runModeButtons.setSelected(stepInstructions.getModel(), true);
             stepThroughInstructions = true;
             stepThroughNextInstruction = true;
@@ -223,7 +222,7 @@ public class Debugger{
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
         opcodeStringField.setText(cpu.opcodeToString(opcode));
-        System.out.printf("Opcode: %x\n", opcode);
+
         opcodeNumField.setText(String.format("Hex: %x | Dec: %d", opcode, opcode));
     }
 }
