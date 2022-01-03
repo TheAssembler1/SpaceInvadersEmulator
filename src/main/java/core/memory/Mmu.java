@@ -48,6 +48,8 @@ public class Mmu {
      * invaders.e 0x1800-0x1FFF
      */
     public void loadRom(){
+        System.out.println("SL:DFJ:LSDJL:KSFJLK:DFJ");
+
         int startOfInvadersHRom = 0x0000;
         int endOfInvadersHRom = 0x07FF;
 
@@ -61,10 +63,10 @@ public class Mmu {
         int endOfInvadersERom = 0x1FFF;
 
         try{
-            File fileH = new File("SpaceInvadersRom/Invaders.h");
-            File fileG = new File("SpaceInvadersRom/Invaders.g");
-            File fileF = new File("SpaceInvadersRom/Invaders.f");
-            File fileE = new File("SpaceInvadersRom/Invaders.E");
+            File fileH = new File("SpaceInvadersRom/invaders.h");
+            File fileG = new File("SpaceInvadersRom/invaders.g");
+            File fileF = new File("SpaceInvadersRom/invaders.f");
+            File fileE = new File("SpaceInvadersRom/invaders.e");
 
             byte[] fileByteArrayH = Files.readAllBytes(fileH.toPath());
             byte[] fileByteArrayG = Files.readAllBytes(fileG.toPath());

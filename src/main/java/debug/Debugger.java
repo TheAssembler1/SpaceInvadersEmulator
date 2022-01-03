@@ -223,6 +223,7 @@ public class Debugger{
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
         opcodeStringField.setText(cpu.opcodeToString(opcode));
+        System.out.println(opcode);
         opcodeNumField.setText(String.format("Hex: %x | Dec: %d", opcode, opcode));
     }
 }
