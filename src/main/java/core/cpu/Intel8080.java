@@ -289,6 +289,9 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x19] = () -> dadOpcode(Register.DE);
         opcodes[0x29] = () -> dadOpcode(Register.HL);
         opcodes[0x39] = () -> dadOpcode(Register.SP);
+        //NOTE::XCHG/XTHL | 1 | 5/18 | - - - -
+        opcodes[0xE3] = () -> xchOpcode(Register.SP);
+        opcodes[0xEB] = () -> xchOpcode(Register.DE);
     }
 
     public void executeOpcode(short opcode){
@@ -659,6 +662,19 @@ public class Intel8080 extends Intel8080Base{
         checkSetCarryFlag(Operation.ADD, (short)prevValue, (short)readValue);
 
         cycles += 10;
+        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
+    }
+
+    //NOTE::XCHG/XTHL | 1 | 5/18 | - - - - -
+    private void xchOpcode(Register reg){
+        int hlReg = getRegisterValue(Register.HL);
+
+        if(reg == Register.SP) { cycles += 13; }
+
+        setRegisterValue(Register.HL, getRegisterValue(reg));
+        setRegisterValue(reg, (short)hlReg);
+
+        cycles += 5;
         setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
     }
 

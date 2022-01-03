@@ -163,8 +163,8 @@ public class Debugger{
         flagsTextArea.setEditable(false);
         registersTextField.setEditable(false);
         flagsTextField.setEditable(false);
-        opcodeStringField.setFont(fontTextField);
-        opcodeNumField.setFont(fontTextField);
+        opcodeStringField.setEditable(false);
+        opcodeNumField.setEditable(false);
 
         //NOTE::Disabling highlighting on text fields
         registersTextArea.setHighlighter(null);
@@ -175,6 +175,8 @@ public class Debugger{
         opcodeNumField.setHighlighter(null);
 
         //NOTE::Have to set background explicitly when disabling editable on text fields
+        registersTextArea.setBackground(Color.WHITE);
+        flagsTextArea.setBackground(Color.WHITE);
         registersTextField.setBackground(Color.WHITE);
         flagsTextField.setBackground(Color.WHITE);
         opcodeStringField.setBackground(Color.WHITE);
