@@ -292,6 +292,12 @@ public class Intel8080 extends Intel8080Base{
         //NOTE::XCHG/XTHL | 1 | 5/18 | - - - -
         opcodes[0xE3] = () -> xchOpcode(Register.SP);
         opcodes[0xEB] = () -> xchOpcode(Register.DE);
+        //FIXME::Temp code for input
+        //NOTE::IN d8 | 2 | 10 | - - - -
+        opcodes[0xDB] = this::inOpcode;
+        //FIXME::Temp code for input
+        //NOTE::OUT d8 | 2 | 10 | - - - -
+        opcodes[0xD3] = this::outOpcode;
     }
 
     public void executeOpcode(short opcode){
@@ -675,6 +681,20 @@ public class Intel8080 extends Intel8080Base{
         setRegisterValue(reg, (short)hlReg);
 
         cycles += 5;
+        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
+    }
+
+    //FIXME::Temp code for input
+    //NOTE::IN d8 | 2 | 10 | - - - - -
+    private void inOpcode(){
+        cycles += 10;
+        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
+    }
+
+    //FIXME::Temp code for input
+    //NOTE::IN d8 | 2 | 10 | - - - - -
+    private void outOpcode(){
+        cycles += 10;
         setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
     }
 
