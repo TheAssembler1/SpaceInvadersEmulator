@@ -21,19 +21,33 @@ public class Gpu extends JPanel{
 
         window.add(this);
         window.pack();
-        window.setResizable(false);
+        //window.setResizable(false);
         window.setVisible(true);
     }
 
     @Override
     protected void paintComponent(Graphics g){
         super.paintComponent(g);
-        //drawScreen(g);
+        drawScreen(g);
     }
 
     private void drawScreen(Graphics g){
-        return;
-        //byte[] pixelBuffer = cpu.getPixelBuffer();
+        byte[] pixelBuffer = cpu.getPixelBuffer();
+
+        int currentRow = 0;
+
+        for(int i = 0; i < pixelBuffer.length; i++){
+            byte currentByte = pixelBuffer[i];
+
+            for(int j = 0; j < 7; j++){
+                if(cpu.checkBitOfByte(currentByte, (byte)j))
+                    g.setColor(Color.WHITE);
+                else
+                    g.setColor(Color.BLACK);
+
+                g.drawRect(((i * 8) + j) % screenXResolution, ((i * 8) + j) / screenXResolution, 0, 0);
+            }
+        }
     }
 
     public static short getScreenXResolution(){
