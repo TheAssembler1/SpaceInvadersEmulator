@@ -245,33 +245,33 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xE5] = () -> pushOpcode(Register.HL);
         opcodes[0xF5] = () -> pushOpcode(Register.AF);
         //NOTE::RF | 1 | 11/5 | - - - - -
-        opcodes[0xC0] = () -> rtOpcode(Flags.ZERO_FLAG, false);
-        opcodes[0xD0] = () -> rtOpcode(Flags.CARRY_FLAG, false);
-        opcodes[0xE0] = () -> rtOpcode(Flags.PARITY_FLAG, false);
-        opcodes[0xF0] = () -> rtOpcode(Flags.SIGN_FLAG, false);
+        opcodes[0xC0] = () -> retOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
+        opcodes[0xD0] = () -> retOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
+        opcodes[0xE0] = () -> retOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
+        opcodes[0xF0] = () -> retOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
         //NOTE::RT | 1 | 11/5 | - - - - -
-        opcodes[0xC8] = () -> rtOpcode(Flags.ZERO_FLAG, true);
-        opcodes[0xD8] = () -> rtOpcode(Flags.CARRY_FLAG, true);
-        opcodes[0xE8] = () -> rtOpcode(Flags.PARITY_FLAG, true);
-        opcodes[0xF8] = () -> rtOpcode(Flags.SIGN_FLAG, true);
+        opcodes[0xC8] = () -> retOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
+        opcodes[0xD8] = () -> retOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
+        opcodes[0xE8] = () -> retOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
+        opcodes[0xF8] = () -> retOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
         //NOTE::RET | 1 | 10 | - - - - -
-        opcodes[0xC9] = () -> rtOpcode(null, false);
-        opcodes[0xD9] = () -> rtOpcode(null, false);
+        opcodes[0xC9] = () -> retOpcode(null, FlagChoice.NULL);
+        opcodes[0xD9] = () -> retOpcode(null, FlagChoice.NULL);
         //CF a16 | 3 | 17/11 | - - - - -
-        opcodes[0xC4] = () -> callOpcode(Flags.ZERO_FLAG, false);
-        opcodes[0xD4] = () -> callOpcode(Flags.CARRY_FLAG, false);
-        opcodes[0xE4] = () -> callOpcode(Flags.PARITY_FLAG, false);
-        opcodes[0xF4] = () -> callOpcode(Flags.SIGN_FLAG, false);
+        opcodes[0xC4] = () -> callOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
+        opcodes[0xD4] = () -> callOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
+        opcodes[0xE4] = () -> callOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
+        opcodes[0xF4] = () -> callOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
         //CT a16 | 3 | 17/11 | - - - - -
-        opcodes[0xCC] = () -> callOpcode(Flags.ZERO_FLAG, true);
-        opcodes[0xDC] = () -> callOpcode(Flags.CARRY_FLAG, true);
-        opcodes[0xEC] = () -> callOpcode(Flags.PARITY_FLAG, true);
-        opcodes[0xFC] = () -> callOpcode(Flags.SIGN_FLAG, true);
+        opcodes[0xCC] = () -> callOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
+        opcodes[0xDC] = () -> callOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
+        opcodes[0xEC] = () -> callOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
+        opcodes[0xFC] = () -> callOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
         //CALL a16 | 3 | 7 | - - - -
-        opcodes[0xCD] = () -> callOpcode(null, false);
-        opcodes[0xDD] = () -> callOpcode(null, false);
-        opcodes[0xED] = () -> callOpcode(null, false);
-        opcodes[0xFD] = () -> callOpcode(null, false);
+        opcodes[0xCD] = () -> callOpcode(null, FlagChoice.NULL);
+        opcodes[0xDD] = () -> callOpcode(null, FlagChoice.NULL);
+        opcodes[0xED] = () -> callOpcode(null, FlagChoice.NULL);
+        opcodes[0xFD] = () -> callOpcode(null, FlagChoice.NULL);
         //NOTE::LDAX reg | 1 | 7 | - - - - -
         opcodes[0x0A] = () -> ldaxOpcode(Register.BC);
         opcodes[0x1A] = () -> ldaxOpcode(Register.DE);
@@ -610,10 +610,10 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::RET | 1 | 10 | - - - - -
     //NOTE::RT | 1 | 11/5 | - - - - -
     //NOTE::RF | 1 | 11/5 | - - - - -
-    private void rtOpcode(Flags flag, boolean flagTruth){
+    private void retOpcode(Flags flag, FlagChoice flagChoice){
         cycles += 10;
         //FIXME::Stack pointer is always returning zero
-        if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles -= 5; return; } else { cycles += 10; }
+        if (flagChoice != FlagChoice.NULL && ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE))){ cycles -= 5; return; } else { cycles += 10; }
 
         setRegisterValue(Register.SP, (short) (getRegisterValue(Register.SP) + 2));
         setRegisterValue(Register.PC, mmu.readShortData(getRegisterValue(Register.SP)));
@@ -622,12 +622,12 @@ public class Intel8080 extends Intel8080Base{
     //CALL a16 | 3 | 7 | - - - -
     //CT a16 | 3 | 17/11 | - - - - -
     //CF a16 | 3 | 17/11 | - - - - -
-    private void callOpcode(Flags flag, boolean flagTruth) {
+    private void callOpcode(Flags flag, FlagChoice flagChoice) {
         //NOTE::We know we at least have to cycle this many times
         cycles += 7;
 
         //NOTE::Checking if we should not jump
-        if (flag != null && ((!getFlag(flag) && flagTruth) || (getFlag(flag) && !flagTruth))){ cycles += 4; return; } else { cycles += 10; }
+        if (flagChoice != FlagChoice.NULL && ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE))){ cycles += 4; return; } else { cycles += 10; }
 
         //NOTE::Setting the stack pointer
         mmu.setShortData(getRegisterValue(Register.SP), (short) (getRegisterValue(Register.PC) + 3));
