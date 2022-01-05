@@ -281,6 +281,14 @@ public abstract class Intel8080Base extends Intel8080Strings{
         return (byte) ((value) & (0x01 << pos)) == 1;
     }
 
+    protected short setBitOfByte(short value, byte bit){
+        return value |= 1 << bit;
+    }
+
+    protected short clearBitOfByte(short value, byte bit){
+        return value |= 0 << bit;
+    }
+
     public byte[] getPixelBuffer(){
         return mmu.getPixelBuffer();
     }

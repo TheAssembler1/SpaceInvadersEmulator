@@ -149,41 +149,41 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0x7F] = () -> movOpcode(Register.A, Register.A);
 
         //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x80] = () -> addOpcode(Register.B, false);
-        opcodes[0x81] = () -> addOpcode(Register.C, false);
-        opcodes[0x82] = () -> addOpcode(Register.D, false);
-        opcodes[0x83] = () -> addOpcode(Register.E, false);
-        opcodes[0x84] = () -> addOpcode(Register.H, false);
-        opcodes[0x85] = () -> addOpcode(Register.L, false);
-        opcodes[0x86] = () -> addOpcode(Register.M, false);
-        opcodes[0x87] = () -> addOpcode(Register.A, false);
+        opcodes[0x80] = () -> addOpcode(Register.B, FlagChoice.FALSE);
+        opcodes[0x81] = () -> addOpcode(Register.C, FlagChoice.FALSE);
+        opcodes[0x82] = () -> addOpcode(Register.D, FlagChoice.FALSE);
+        opcodes[0x83] = () -> addOpcode(Register.E, FlagChoice.FALSE);
+        opcodes[0x84] = () -> addOpcode(Register.H, FlagChoice.FALSE);
+        opcodes[0x85] = () -> addOpcode(Register.L, FlagChoice.FALSE);
+        opcodes[0x86] = () -> addOpcode(Register.M, FlagChoice.FALSE);
+        opcodes[0x87] = () -> addOpcode(Register.A, FlagChoice.FALSE);
         //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x88] = () -> addOpcode(Register.B, true);
-        opcodes[0x89] = () -> addOpcode(Register.C, true);
-        opcodes[0x8A] = () -> addOpcode(Register.D, true);
-        opcodes[0x8B] = () -> addOpcode(Register.E, true);
-        opcodes[0x8C] = () -> addOpcode(Register.H, true);
-        opcodes[0x8D] = () -> addOpcode(Register.L, true);
-        opcodes[0x8E] = () -> addOpcode(Register.M, true);
-        opcodes[0x8F] = () -> addOpcode(Register.A, true);
+        opcodes[0x88] = () -> addOpcode(Register.B, FlagChoice.TRUE);
+        opcodes[0x89] = () -> addOpcode(Register.C, FlagChoice.TRUE);
+        opcodes[0x8A] = () -> addOpcode(Register.D, FlagChoice.TRUE);
+        opcodes[0x8B] = () -> addOpcode(Register.E, FlagChoice.TRUE);
+        opcodes[0x8C] = () -> addOpcode(Register.H, FlagChoice.TRUE);
+        opcodes[0x8D] = () -> addOpcode(Register.L, FlagChoice.TRUE);
+        opcodes[0x8E] = () -> addOpcode(Register.M, FlagChoice.TRUE);
+        opcodes[0x8F] = () -> addOpcode(Register.A, FlagChoice.TRUE);
         //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x90] = () -> subOpcode(Register.B, false);
-        opcodes[0x91] = () -> subOpcode(Register.C, false);
-        opcodes[0x92] = () -> subOpcode(Register.D, false);
-        opcodes[0x93] = () -> subOpcode(Register.E, false);
-        opcodes[0x94] = () -> subOpcode(Register.H, false);
-        opcodes[0x95] = () -> subOpcode(Register.L, false);
-        opcodes[0x96] = () -> subOpcode(Register.M, false);
-        opcodes[0x97] = () -> subOpcode(Register.A, false);
+        opcodes[0x90] = () -> subOpcode(Register.B, FlagChoice.FALSE);
+        opcodes[0x91] = () -> subOpcode(Register.C, FlagChoice.FALSE);
+        opcodes[0x92] = () -> subOpcode(Register.D, FlagChoice.FALSE);
+        opcodes[0x93] = () -> subOpcode(Register.E, FlagChoice.FALSE);
+        opcodes[0x94] = () -> subOpcode(Register.H, FlagChoice.FALSE);
+        opcodes[0x95] = () -> subOpcode(Register.L, FlagChoice.FALSE);
+        opcodes[0x96] = () -> subOpcode(Register.M, FlagChoice.FALSE);
+        opcodes[0x97] = () -> subOpcode(Register.A, FlagChoice.FALSE);
         //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
-        opcodes[0x98] = () -> subOpcode(Register.B, true);
-        opcodes[0x99] = () -> subOpcode(Register.C, true);
-        opcodes[0x9A] = () -> subOpcode(Register.D, true);
-        opcodes[0x9B] = () -> subOpcode(Register.E, true);
-        opcodes[0x9C] = () -> subOpcode(Register.H, true);
-        opcodes[0x9D] = () -> subOpcode(Register.L, true);
-        opcodes[0x9E] = () -> subOpcode(Register.M, true);
-        opcodes[0x9F] = () -> subOpcode(Register.A, true);
+        opcodes[0x98] = () -> subOpcode(Register.B, FlagChoice.TRUE);
+        opcodes[0x99] = () -> subOpcode(Register.C, FlagChoice.TRUE);
+        opcodes[0x9A] = () -> subOpcode(Register.D, FlagChoice.TRUE);
+        opcodes[0x9B] = () -> subOpcode(Register.E, FlagChoice.TRUE);
+        opcodes[0x9C] = () -> subOpcode(Register.H, FlagChoice.TRUE);
+        opcodes[0x9D] = () -> subOpcode(Register.L, FlagChoice.TRUE);
+        opcodes[0x9E] = () -> subOpcode(Register.M, FlagChoice.TRUE);
+        opcodes[0x9F] = () -> subOpcode(Register.A, FlagChoice.TRUE);
         //NOTE::ANA reg | 1 | 4 M = 7 | S Z A P C
         opcodes[0xA0] = () -> anaOpcode(Register.B);
         opcodes[0xA1] = () -> anaOpcode(Register.C);
@@ -298,6 +298,9 @@ public class Intel8080 extends Intel8080Base{
         //FIXME::Temp code for input
         //NOTE::OUT d8 | 2 | 10 | - - - -
         opcodes[0xD3] = this::outOpcode;
+        //NOTE::RLC/RRC | 1 | 4 | - - - - C
+        opcodes[0x07] = () -> rotOpcode(false);
+        opcodes[0x0F] = () -> rotOpcode(true);
     }
 
     public void executeOpcode(short opcode){
@@ -417,7 +420,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::ADD reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::ADC reg | 1 | 4 M = 7 | S Z A P C
-    private void addOpcode(Register reg, boolean carryFlag){
+    private void addOpcode(Register reg, FlagChoice flagChoice){
         byte prevValue; byte result;
 
         prevValue = (byte) getRegisterValue(Register.A);
@@ -425,7 +428,7 @@ public class Intel8080 extends Intel8080Base{
         if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + getRegisterValue(reg))); }
         else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
 
-        if(carryFlag) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + 1));}
+        if(flagChoice == FlagChoice.TRUE) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) + 1));}
 
         result = (byte) getRegisterValue(Register.A);
 
@@ -441,7 +444,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::SUB reg | 1 | 4 M = 7 | S Z A P C
     //NOTE::SBB reg | 1 | 4 M = 7 | S Z A P C
-    private void subOpcode(Register reg, boolean carryFlag){
+    private void subOpcode(Register reg, FlagChoice flagChoice){
         byte prevValue; byte result;
 
         prevValue = (byte) getRegisterValue(Register.A);
@@ -449,7 +452,7 @@ public class Intel8080 extends Intel8080Base{
         if(reg != Register.M ) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - getRegisterValue(reg))); }
         else { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - mmu.readByteData(getRegisterValue(Register.HL)))); cycles += 3; }
 
-        if(carryFlag) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - 1));}
+        if(flagChoice == FlagChoice.TRUE) { setRegisterValue(Register.A, (short) (getRegisterValue(Register.A) - 1));}
 
         result = (byte) getRegisterValue(Register.A);
 
@@ -696,6 +699,28 @@ public class Intel8080 extends Intel8080Base{
     private void outOpcode(){
         cycles += 10;
         setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
+    }
+
+    //FIXME::GROUP RLC/RRC
+    //FIXME::RAL/RAR
+    //FIXME::GROUP CMA/CMC
+    //FIXME::GROUP DAA
+    //FIXME::GROUP STC
+
+    //NOTE::RLC/RRC | 1 | 4 | - - - - C
+    private void rotOpcode(boolean rightRot){
+        boolean bitSet = checkBitOfByte(getRegisterValue(Register.A), (byte) 7);
+
+        if(bitSet){
+            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
+            setRegisterValue(Register.A, setBitOfByte(getRegisterValue(Register.A), (byte) 0));
+        }else{
+            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
+            setRegisterValue(Register.A, clearBitOfByte(getRegisterValue(Register.A), (byte) 0));
+        }
+
+        cycles += 4;
+        setRegisterValue(Register.PC, (short) (getRegisterValue(Register.PC) + 1));
     }
 
     public String registersToString(){
