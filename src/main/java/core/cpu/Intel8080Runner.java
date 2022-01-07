@@ -26,9 +26,12 @@ public class Intel8080Runner implements Runnable{
         while(true){
             for(int i = 0; i <= cpu.cyclesPerSecond; i += cpu.getCycles()) {
                 int opcode = Byte.toUnsignedInt(mmu.readByteData(cpu.getPCReg()));
-                //NOTE::Converting signed byte to unsigned int
+
                 debugger.update(cpu, gpu);
                 cpu.executeOpcode(opcode);
+
+                gpu.increaseAvailableCycles(cpu.getCycles());
+                gpu.repaint();
             }
         }
     }

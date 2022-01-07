@@ -13,8 +13,7 @@ public class Gpu extends JPanel{
     static private short screenXResolution = 256;
     static private short screenYResolution = 224;
 
-    static private int halfScreenCycles = 68;
-    static private int currentPixel = 0;
+    static private int halfScreenCycles = 33333 / 2;
 
     static private boolean halfScreenInterrupt = true;
 
@@ -31,7 +30,7 @@ public class Gpu extends JPanel{
 
         window.add(this);
         window.pack();
-        //window.setResizable(false);
+        window.setResizable(false);
         window.setVisible(true);
     }
 
@@ -42,36 +41,45 @@ public class Gpu extends JPanel{
     }
 
     private void drawScreen(Graphics g){
-        while(availableCycles > 277) {
-            availableCycles -= 277;
+        if(availableCycles > halfScreenCycles) {
+            availableCycles -= halfScreenCycles;
 
             byte[] pixelBuffer = cpu.getPixelBuffer();
 
-            for(int i = 0; i < (screenXResolution / 2) - 1; i++){
-                int index = (currentPixel + i)  / 8 ;
-                byte currentByte = pixelBuffer[index];
-
-                for(int j = 0; j <= 7; j++) {
-                    if (cpu.getBitOfByte(currentByte, j))
-                        g.setColor(Color.WHITE);
-                    else
-                        g.setColor(Color.BLACK);
-
-                    g.drawRect(currentPixel % screenXResolution, currentPixel / screenXResolution, 0, 0);
-                }
-            }
-
-            currentPixel += screenXResolution / 2;
-
-            if(currentPixel > (screenXResolution * screenYResolution) - 1)
-                currentPixel = 0;
-
-            if(halfScreenInterrupt) {
+            if(halfScreenInterrupt){
+                System.out.println("INFO::Drawing half of the screen");
                 halfScreenInterrupt = false;
-                cpu.rstOpcode(midScreenInterrupt);
-            } else {
+
+                for(int i = 0; i <= pixelBuffer.length / 2; i++){
+                    byte currentByte = pixelBuffer[i];
+
+                    for(int j = 0; j < 8; j++){
+                        if(cpu.getBitOfByte(currentByte, j))
+                            g.setColor(Color.WHITE);
+                        else
+                            g.setColor(Color.BLACK);
+                    }
+
+                    g.drawRect(i % screenXResolution, i / screenXResolution, 0, 0);
+                }
+                //cpu.executeOpcode(midScreenInterrupt);
+            }else{
+                System.out.println("INFO::Drawing the rest of the screen");
                 halfScreenInterrupt = true;
-                cpu.rstOpcode(endScreenInterrupt);
+
+                for(int i = pixelBuffer.length / 2 + 1; i < pixelBuffer.length; i++){
+                    byte currentByte = pixelBuffer[i];
+
+                    for(int j = 0; j < 8; j++){
+                        if(cpu.getBitOfByte(currentByte, j))
+                            g.setColor(Color.WHITE);
+                        else
+                            g.setColor(Color.BLACK);
+                    }
+
+                    g.drawRect(i % screenXResolution, i / screenXResolution, 0, 0);
+                }
+                //cpu.executeOpcode(endScreenInterrupt);
             }
         }
     }

@@ -914,6 +914,6 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortRelativeTo(Register.SP, (short) -2);
 
         cycles += 11;
-        setRegisterShortValue(Register.PC, (short) 8);
+        setRegisterShortValue(Register.PC, interrupt);
     }
 }

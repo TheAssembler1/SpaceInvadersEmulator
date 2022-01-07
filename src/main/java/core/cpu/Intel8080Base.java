@@ -334,9 +334,6 @@ public abstract class Intel8080Base{
 
     public Intel8080Base(Mmu mmu) {
         this.mmu = mmu;
-
-        //NOTE::Setting initial state of flags
-        setRegisterByteValue(Register.F, (byte) 0b00000010);
     }
 
     protected void setRegisterShortValue(Register regPair, short value) {
