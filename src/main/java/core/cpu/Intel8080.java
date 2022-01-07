@@ -752,12 +752,6 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
-    //FIXME::Temp code for output
-    //NOTE::IN d8 | 2 | 10 | - - - - -
-    private void outOpcode(){
-        cycles += 10;
-        setRegisterShortRelativeTo(Register.PC, (short) 1);
-    }
 
     //NOTE::XCHG/XTHL | 1 | 5/18 | - - - - -
     private void xchOpcode(Register reg){
@@ -870,11 +864,20 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
+    //FIXME::Temp code for output
+    //NOTE::OUT d8 | 2 | 10 | - - - - -
+    private void outOpcode(){
+        System.out.println("INFO::OUT: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
+        cycles += 10;
+        setRegisterShortRelativeTo(Register.PC, (short) 2);
+    }
+
     //FIXME::Temp code for input
     //NOTE::IN d8 | 2 | 10 | - - - - -
     private void inOpcode(){
+        System.out.println("INFO::IN: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
         cycles += 10;
-        setRegisterShortRelativeTo(Register.PC, (short) 1);
+        setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
 
     //NOTE::CALL a16 | 3 | 17 | - - - - -

@@ -28,13 +28,18 @@ public class Entry {
         Debugger debugger = new Debugger(cpu, Debugger.RunMode.STEP_INSTRUCTIONS);
 
         while(true){
-            int opcode = Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));
-            //NOTE::Updating the debugger
-            debugger.update(opcode);
-            //NOTE::Converting signed byte to unsigned int
-            cpu.executeOpcode(opcode);
-            //NOTE::Rendering pixel window
-            gpu.repaint();
+            for(int i = 0; i <= cpu.cyclesPerSecond; i = cpu.getCycles()) {
+                int opcode = Byte.toUnsignedInt(mmu.readOpcode(cpu.getPCReg()));
+                //NOTE::Updating the debugger
+                debugger.update(opcode);
+                //NOTE::Converting signed byte to unsigned int
+                cpu.executeOpcode(opcode);
+                //NOTE::Rendering pixel window
+                gpu.repaint();
+
+                if(cpu.getCycles() > cpu.cyclesPerSecond)
+                    cpu.resetCycles();
+            }
         }
     }
 }

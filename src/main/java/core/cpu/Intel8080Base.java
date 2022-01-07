@@ -10,6 +10,8 @@ public abstract class Intel8080Base {
     protected final Mmu mmu;
     protected int cycles = 0;
 
+    public final int cyclesPerSecond = 33333;
+
     protected boolean cpuStoppped = false;
     protected boolean intEnabled = true;
 
@@ -599,6 +601,10 @@ public abstract class Intel8080Base {
     public short getPCReg(){
         return getRegisterShortValue(Register.PC);
     }
+
+    public int getCycles() { return cycles; }
+
+    public void resetCycles() { cycles -= getCycles(); }
 
     public String registersToString(){
         String string = "";
