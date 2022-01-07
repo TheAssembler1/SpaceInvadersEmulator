@@ -11,6 +11,7 @@ public abstract class Intel8080Base {
     protected int cycles = 0;
 
     protected boolean cpuStoppped = false;
+    protected boolean intEnabled = true;
 
     private static class Registers {
         byte a;
@@ -412,7 +413,11 @@ public abstract class Intel8080Base {
             case H -> registers.h = value;
             case L -> registers.l = value;
             case M -> mmu.setByteData(getRegisterShortValue(Register.HL), value);
-            default -> System.out.println("ERROR::Invalid setRegisterByteValue");
+            default -> {
+                System.out.println("ERROR::Invalid setRegisterByteValue");
+                System.out.println(registersToString());
+                System.out.println(flagsToString());
+            }
         }
     }
 
@@ -446,8 +451,10 @@ public abstract class Intel8080Base {
                 return mmu.readByteData(getRegisterShortValue(Register.HL));
             }
             default -> {
-                System.out.println("ERROR::Invalid setRegisterByteValue");
-                return -1;
+                System.out.println("ERROR::Invalid getRegisterByteValue");
+                System.out.println(registersToString());
+                System.out.println(flagsToString());
+                return 0;
             }
         }
     }
@@ -542,7 +549,7 @@ public abstract class Intel8080Base {
         };
     }
 
-    protected boolean getBitOfByte(byte value, int pos){
+    public boolean getBitOfByte(byte value, int pos){
         return ((value >> pos) & 1) == 1;
     }
 
@@ -587,6 +594,10 @@ public abstract class Intel8080Base {
 
     public byte[] getPixelBuffer(){
         return mmu.getPixelBuffer();
+    }
+
+    public short getPCReg(){
+        return getRegisterShortValue(Register.PC);
     }
 
     public String registersToString(){

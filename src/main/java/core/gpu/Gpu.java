@@ -34,13 +34,11 @@ public class Gpu extends JPanel{
     private void drawScreen(Graphics g){
         byte[] pixelBuffer = cpu.getPixelBuffer();
 
-        int currentRow = 0;
-
         for(int i = 0; i < pixelBuffer.length; i++){
             byte currentByte = pixelBuffer[i];
 
-            for(int j = 0; j < 7; j++){
-                if(cpu.checkBitOfByte(currentByte, (byte)j))
+            for(int j = 0; j <= 7; j++){
+                if(cpu.getBitOfByte(currentByte, (byte)j))
                     g.setColor(Color.WHITE);
                 else
                     g.setColor(Color.BLACK);

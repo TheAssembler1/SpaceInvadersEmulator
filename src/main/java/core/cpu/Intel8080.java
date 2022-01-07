@@ -254,72 +254,82 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xBD] = () -> cmpOpcode(Register.L);
         opcodes[0xBE] = () -> cmpOpcode(Register.M);
         opcodes[0xBF] = () -> cmpOpcode(Register.A);
-        //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
-        opcodes[0xC2] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
-        opcodes[0xD2] = () -> jmpOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
-        opcodes[0xE2] = () -> jmpOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
-        opcodes[0xF2] = () -> jmpOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
-
-        opcodes[0xC3] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.NULL);
-
-        opcodes[0xCA] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
-        opcodes[0xDA] = () -> jmpOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
-        opcodes[0xEA] = () -> jmpOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
-        opcodes[0xFA] = () -> jmpOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
-
-        opcodes[0xCB] = () -> jmpOpcode(Flags.ZERO_FLAG, FlagChoice.NULL);
+        //NOTE::RF | 1 | 11/5 | - - - - -
+        opcodes[0xC0] = () -> rtfOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
+        opcodes[0xD0] = () -> rtfOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
+        opcodes[0xE0] = () -> rtfOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
+        opcodes[0xF0] = () -> rtfOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
+        //NOTE::RT | 1 | 11/5 | - - - - -
+        opcodes[0xC8] = () -> rtfOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
+        opcodes[0xD8] = () -> rtfOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
+        opcodes[0xE8] = () -> rtfOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
+        opcodes[0xF8] = () -> rtfOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
         //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
         opcodes[0xC1] = () -> popOpcode(Register.BC);
         opcodes[0xD1] = () -> popOpcode(Register.DE);
         opcodes[0xE1] = () -> popOpcode(Register.HL);
         opcodes[0xF1] = () -> popOpcode(Register.AF);
+        //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
+        opcodes[0xC2] = () -> jtfOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
+        opcodes[0xD2] = () -> jtfOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
+        opcodes[0xE2] = () -> jtfOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
+        opcodes[0xF2] = () -> jtfOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
+
+        opcodes[0xCA] = () -> jtfOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
+        opcodes[0xDA] = () -> jtfOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
+        opcodes[0xEA] = () -> jtfOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
+        opcodes[0xFA] = () -> jtfOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
+        //NOTE::JMP a16 | 3 | 10 | - - - - -
+        opcodes[0xC3] = this::jmpOpcode;
+        opcodes[0xCB] = this::jmpOpcode;
+        //FIXME::Temp code for input
+        //NOTE::OUT d8 | 2 | 10 | - - - -
+        opcodes[0xD3] = this::outOpcode;
+        //NOTE::XCHG/XTHL | 1 | 5/18 | - - - -
+        opcodes[0xE3] = () -> xchOpcode(Register.SP);
+        opcodes[0xEB] = () -> xchOpcode(Register.DE);
+        //NOTE::DI/EI | 1 | 4 | - - - - -
+        opcodes[0xF3] = () -> intOpcode(false);
+        opcodes[0xFB] = () -> intOpcode(true);
+        //CTF a16 | 3 | 17/11 | - - - - -
+        opcodes[0xC4] = () -> ctfOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
+        opcodes[0xD4] = () -> ctfOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
+        opcodes[0xE4] = () -> ctfOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
+        opcodes[0xF4] = () -> ctfOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
+
+        opcodes[0xCC] = () -> ctfOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
+        opcodes[0xDC] = () -> ctfOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
+        opcodes[0xEC] = () -> ctfOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
+        opcodes[0xFC] = () -> ctfOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
         //NOTE::PUSH reg | 1 | 11 | - - - -
         opcodes[0xC5] = () -> pushOpcode(Register.BC);
         opcodes[0xD5] = () -> pushOpcode(Register.DE);
         opcodes[0xE5] = () -> pushOpcode(Register.HL);
         opcodes[0xF5] = () -> pushOpcode(Register.AF);
-        //NOTE::RF | 1 | 11/5 | - - - - -
-        opcodes[0xC0] = () -> retOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
-        opcodes[0xD0] = () -> retOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
-        opcodes[0xE0] = () -> retOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
-        opcodes[0xF0] = () -> retOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
-        //NOTE::RT | 1 | 11/5 | - - - - -
-        opcodes[0xC8] = () -> retOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
-        opcodes[0xD8] = () -> retOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
-        opcodes[0xE8] = () -> retOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
-        opcodes[0xF8] = () -> retOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
+        //NOTE::OPI d8 | 2 | 7 | S Z A P C
+        opcodes[0xC6] = () -> opiOpcode(Operation.ADD, false);
+        opcodes[0xD6] = () -> opiOpcode(Operation.SUB, false);
+        opcodes[0xE6] = () -> opiOpcode(Operation.AND, false);
+        opcodes[0xF6] = () -> opiOpcode(Operation.OR, false);
+
+        opcodes[0xCE] = () -> opiOpcode(Operation.ADD, true);
+        opcodes[0xDE] = () -> opiOpcode(Operation.SUB, true);
+        opcodes[0xEE] = () -> opiOpcode(Operation.XOR, false);
+        opcodes[0xFE] = () -> opiOpcode(Operation.NULL, false);
         //NOTE::RET | 1 | 10 | - - - - -
-        opcodes[0xC9] = () -> retOpcode(null, FlagChoice.NULL);
-        opcodes[0xD9] = () -> retOpcode(null, FlagChoice.NULL);
-        //CF a16 | 3 | 17/11 | - - - - -
-        opcodes[0xC4] = () -> callOpcode(Flags.ZERO_FLAG, FlagChoice.FALSE);
-        opcodes[0xD4] = () -> callOpcode(Flags.CARRY_FLAG, FlagChoice.FALSE);
-        opcodes[0xE4] = () -> callOpcode(Flags.PARITY_FLAG, FlagChoice.FALSE);
-        opcodes[0xF4] = () -> callOpcode(Flags.SIGN_FLAG, FlagChoice.FALSE);
-        //CT a16 | 3 | 17/11 | - - - - -
-        opcodes[0xCC] = () -> callOpcode(Flags.ZERO_FLAG, FlagChoice.TRUE);
-        opcodes[0xDC] = () -> callOpcode(Flags.CARRY_FLAG, FlagChoice.TRUE);
-        opcodes[0xEC] = () -> callOpcode(Flags.PARITY_FLAG, FlagChoice.TRUE);
-        opcodes[0xFC] = () -> callOpcode(Flags.SIGN_FLAG, FlagChoice.TRUE);
-        //CALL a16 | 3 | 7 | - - - -
-        opcodes[0xCD] = () -> callOpcode(null, FlagChoice.NULL);
-        opcodes[0xDD] = () -> callOpcode(null, FlagChoice.NULL);
-        opcodes[0xED] = () -> callOpcode(null, FlagChoice.NULL);
-        opcodes[0xFD] = () -> callOpcode(null, FlagChoice.NULL);
-        //ACI/SBI/XRI/CPI d8 | 2 | 7 | S Z A P C
-        opcodes[0xCE] = () -> cpiOpcode(Operation.ADD);
-        opcodes[0xDE] = () -> cpiOpcode(Operation.SUB);
-        opcodes[0xEE] = () -> cpiOpcode(Operation.XOR);
-        opcodes[0xFE] = () -> cpiOpcode(Operation.NULL);
-        //NOTE::XCHG/XTHL | 1 | 5/18 | - - - -
-        opcodes[0xE3] = () -> xchOpcode(Register.SP);
-        opcodes[0xEB] = () -> xchOpcode(Register.DE);
+        opcodes[0xC9] = this::retOpcode;
+        opcodes[0xD9] = this::retOpcode;
+        //NOTE::PCHL/SPHL | 1 | 5 | - - - - -
+        opcodes[0xE9] = () -> ldpcOpcode(Register.HL);
+        opcodes[0xF9] = () -> ldpcOpcode(Register.PC);
         //FIXME::Temp code for input
         //NOTE::IN d8 | 2 | 10 | - - - -
         opcodes[0xDB] = this::inOpcode;
-        //FIXME::Temp code for input
-        //NOTE::OUT d8 | 2 | 10 | - - - -
-        opcodes[0xD3] = this::outOpcode;
+        //NOTE::CALL a16 | 3 | 17 | - - - - -
+        opcodes[0xCD] = this::callOpcode;
+        opcodes[0xDD] = this::callOpcode;
+        opcodes[0xED] = this::callOpcode;
+        opcodes[0xFD] = this::callOpcode;
     }
 
     public void executeOpcode(int opcode){
@@ -420,7 +430,7 @@ public class Intel8080 extends Intel8080Base{
         setRegisterByteValue(reg, mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
 
         cycles += 7;
-        setRegisterShortValue(Register.PC, (short) 2);
+        setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
 
     //NOTE::RLC/RRC | 1 | 4 | - - - - C
@@ -551,7 +561,7 @@ public class Intel8080 extends Intel8080Base{
         if(reg1 == Register.M || reg2 == Register.M)
             cycles += 2;
 
-        setRegisterByteRelativeTo(reg1, getRegisterByteValue(reg2));
+        setRegisterByteValue(reg1, getRegisterByteValue(reg2));
 
         cycles += 5;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
@@ -702,9 +712,10 @@ public class Intel8080 extends Intel8080Base{
     }
 
     //NOTE::RF/RT | 1 | 11/5 | - - - - -
-    private void retOpcode(Flags flag, FlagChoice flagChoice){
+    private void rtfOpcode(Flags flag, FlagChoice flagChoice){
         if ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE)){
             cycles += 5;
+            setRegisterShortRelativeTo(Register.PC, (short) 1);
             return;
         }
 
@@ -714,102 +725,166 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
     }
 
-    //ACI/SBI/XRI/CPI d8 | 2 | 7 | S Z A P C
-    private void cpiOpcode(Operation operation){
-        int prevValue = (byte) getRegisterValue(Register.A);
-        int readValue = mmu.readByteData((getRegisterValue(Register.PC) + 1));
-        int result = readValue;
+    //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
+    private void popOpcode(Register reg){
+        setRegisterShortValue(reg, mmu.readShortData(getRegisterShortValue(Register.SP)));
+        setRegisterShortRelativeTo(Register.SP, (short) 2);
 
-        switch (operation){
-            case ADD -> result = (byte) (prevValue + readValue);
-            case SUB -> result = (byte) (prevValue - readValue);
-            case XOR -> result = (byte) (prevValue ^ readValue);
-            //FIXME::This is a hack don't know fix this is the correct way for this to get done
-            case NULL -> result = (byte) (prevValue - readValue);
-        }
-
-        checkSetSignFlag(result);
-        checkSetZeroFlag(result);
-        checkSetAuxiliaryCarryFlag(Operation.SUB, prevValue, result);
-        checkSetParityFlag(result);
-        checkSetCarryFlag(Operation.SUB, prevValue, result);
-
-        cycles += 2;
-        setRegisterValue(Register.PC, (getRegisterValue(Register.PC) + 2));
+        cycles += 10;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
-    //NOTE::JMP/JNZ/JNC/JPO/JP/JZ/JC/JPE/JM a16 | 3 | 10 | - - - - -
-    private void jmpOpcode(Flags flag, FlagChoice flagChoice){
-        if(flagChoice == FlagChoice.NULL || (getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
-                setRegisterValue(Register.PC, (mmu.readShortData((getRegisterValue(Register.PC) + 1))));
-                cycles += 7;
+    //NOTE::JT/JF a16 | 3 | 10 | - - - - -
+    private void jtfOpcode(Flags flag, FlagChoice flagChoice){
+        if((getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
+            setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
+            cycles += 7;
         }
         else
-            setRegisterValue(Register.PC, (getRegisterValue(Register.PC) + 3));
+            setRegisterShortRelativeTo(Register.PC, (short) 3);
 
         cycles += 3;
     }
 
-    //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
-    private void popOpcode(Register reg){
-        setRegisterValue(reg, mmu.readShortData(getRegisterValue(Register.SP)));
-        setRegisterValue(Register.SP, (getRegisterValue(Register.SP) + 2));
-
+    //NOTE::JMP a16 | 3 | 10 | - - - - -
+    private void jmpOpcode(){
         cycles += 10;
-        setRegisterValue(Register.PC, (getRegisterValue(Register.PC) + 1));
-    }
-
-    //NOTE::PUSH reg | 1 | 11 | - - - -
-    private void pushOpcode(Register reg){
-        mmu.setShortData(getRegisterValue(Register.SP), getRegisterValue(reg));
-        setRegisterValue(Register.SP, (getRegisterValue(Register.SP) - 2));
-
-        cycles += 1;
-        setRegisterValue(Register.PC, (getRegisterValue(Register.PC) + 1));
-    }
-
-    //CALL a16 | 3 | 7 | - - - -
-    //CT a16 | 3 | 17/11 | - - - - -
-    //CF a16 | 3 | 17/11 | - - - - -
-    private void callOpcode(Flags flag, FlagChoice flagChoice) {
-        //NOTE::We know we at least have to cycle this many times
-        cycles += 7;
-
-        //NOTE::Checking if we should not jump
-        if (flagChoice != FlagChoice.NULL && ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE))){ cycles += 4; return; } else { cycles += 10; }
-
-        //NOTE::Setting the stack pointer
-        mmu.setShortData(getRegisterValue(Register.SP), (getRegisterValue(Register.PC) + 3));
-        setRegisterValue(Register.SP, (getRegisterValue(Register.SP) - 2));
-
-        setRegisterValue(Register.PC, mmu.readShortData((getRegisterValue(Register.PC) + 1)));
-    }
-
-    //NOTE::XCHG/XTHL | 1 | 5/18 | - - - - -
-    private void xchOpcode(Register reg){
-        int hlReg = getRegisterValue(Register.HL);
-
-        if(reg == Register.SP) { cycles += 13; }
-
-        setRegisterValue(Register.HL, getRegisterValue(reg));
-        setRegisterValue(reg, (short)hlReg);
-
-        cycles += 5;
-        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
-    }
-
-    //FIXME::Temp code for input
-    //NOTE::IN d8 | 2 | 10 | - - - - -
-    private void inOpcode(){
-        cycles += 10;
-        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
+        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
     //FIXME::Temp code for output
     //NOTE::IN d8 | 2 | 10 | - - - - -
     private void outOpcode(){
         cycles += 10;
-        setRegisterValue(Register.PC, (short)(getRegisterValue(Register.PC) + 1));
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
+    //NOTE::XCHG/XTHL | 1 | 5/18 | - - - - -
+    private void xchOpcode(Register reg){
+        short hlReg = getRegisterShortValue(Register.HL);
+
+        if(reg == Register.SP) { cycles += 13; }
+
+        setRegisterShortValue(Register.HL, getRegisterShortValue(reg));
+        setRegisterShortValue(reg, hlReg);
+
+        cycles += 5;
+        setRegisterShortRelativeTo(Register.PC, (short)1);
+    }
+
+    //NOTE::DI/EI | 1 | 4 | - - - - -
+    private void intOpcode(boolean enable){
+        if(enable)
+            intEnabled = true;
+        else
+            intEnabled = false;
+
+        cycles += 4;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
+    //CT/CF a16 | 3 | 17/11 | - - - - -
+    private void ctfOpcode(Flags flag, FlagChoice flagChoice) {
+        //NOTE::Checking if we should not jump
+        if ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE)){
+            cycles += 11;
+            setRegisterShortValue(Register.PC, (short) 11);
+            return;
+        }
+
+        //NOTE::Setting the stack pointer
+        mmu.setShortData(getRegisterShortValue(Register.SP), (short) (getRegisterShortValue(Register.PC) + 3));
+        setRegisterShortRelativeTo(Register.SP, (short) -2);
+
+        cycles += 17;
+        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
+    }
+
+    //NOTE::PUSH reg | 1 | 11 | - - - -
+    private void pushOpcode(Register reg){
+        mmu.setShortData(getRegisterShortValue(Register.SP), getRegisterShortValue(reg));
+        setRegisterShortRelativeTo(Register.SP, (short) -2);
+
+        cycles += 11;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
+
+    //NOTE::OPI d8 | 2 | 7 | S Z A P C
+    private void opiOpcode(Operation operation, boolean addCarry){
+        byte value1 = getRegisterByteValue(Register.A);
+        byte value2 = mmu.readByteData(getRegisterShortValue(Register.PC) + 1);
+        byte result = 0;
+
+        cycles += 7;
+
+        if(addCarry && getFlag(Flags.CARRY_FLAG))
+            result++;
+
+        switch(operation){
+            case ADD -> result += (byte) (value1 + value2);
+            case SUB -> result += (byte) (value1 - value2);
+            case AND -> result += (byte) (value1 & value2);
+            case OR -> result += (byte) (value1 | value2);
+            case XOR -> result += (byte) (value1 ^ value2);
+            case NULL -> {
+                result += (byte) (value1 - value2);
+
+                checkSetSignFlag(result);
+                checkSetZeroFlag(result);
+                checkSetAuxiliaryCarryFlag(Operation.SUB, value1, value2);
+                checkSetParityFlag(result);
+                checkSetCarryFlag(Operation.SUB, value1, value2);
+
+                setRegisterShortRelativeTo(Register.PC, (short) 2);
+                return;
+            }
+        }
+
+        checkSetSignFlag(result);
+        checkSetZeroFlag(result);
+        //NOTE::Read that this flag is supposed to reflect a logical or with bit 3
+        if(getBitOfByte(getRegisterByteValue(Register.A), 3) || getBitOfByte(value2, 3))
+            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE, FlagChoice.NULL, FlagChoice.NULL);
+        else
+            setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE, FlagChoice.NULL, FlagChoice.NULL);
+        setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
+        checkSetParityFlag(result);
+
+        setRegisterShortRelativeTo(Register.PC, (short) 2);
+    }
+
+    //NOTE::RET | 1 | 10 | - - - - -
+    private void retOpcode(){
+        setRegisterShortRelativeTo(Register.SP, (short) 2);
+
+        cycles += 10;
+        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
+    }
+
+    //NOTE::PCHL/SPHL | 1 | 5 | - - - - -
+    private void ldpcOpcode(Register reg){
+        setRegisterShortValue(Register.PC, getRegisterShortValue(reg));
+
+        cycles += 5;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
+    //FIXME::Temp code for input
+    //NOTE::IN d8 | 2 | 10 | - - - - -
+    private void inOpcode(){
+        cycles += 10;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
+    //NOTE::CALL a16 | 3 | 17 | - - - - -
+    private void callOpcode(){
+        //NOTE::Setting the stack pointer
+        mmu.setShortData(getRegisterShortValue(Register.SP), (short) (getRegisterShortValue(Register.PC) + 3));
+        setRegisterShortRelativeTo(Register.SP, (short) -2);
+
+        cycles += 17;
+        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
     public String registersToString(){
@@ -821,6 +896,6 @@ public class Intel8080 extends Intel8080Base{
     }
 
     public String opcodeToString(int opcode){
-        return getOpcodeString(opcode);
+        return getOpcodeString((short) opcode);
     }
 }
