@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 
 public class Mmu {
-    private ByteBuffer memory;
+    private final ByteBuffer memory;
 
     public Mmu(int memoryByteSize){
         memory = ByteBuffer.allocate(memoryByteSize);
@@ -17,27 +17,27 @@ public class Mmu {
     }
 
     //NOTE::Read 16 bits with data formatted with little endianness
-    public short readShortData(short address){
+    public short readShortData(int address){
         return memory.getShort(address);
     }
 
     //NOTE::Read 8 bits of data
-    public byte readByteData(short address){
+    public byte readByteData(int address){
         return memory.get(address);
     }
 
     //NOTE::Set 16 bits of data to core.memory formatted with little endianness
-    public void setShortData(short address, short value) {
+    public void setShortData(int address, short value) {
         memory.putShort(address, value);
     }
 
     //NOTE::Set 8 bits of data to core.memory
-    public void setByteData(short address, byte value) {
+    public void setByteData(int address, byte value) {
         memory.put(address, value);
     }
 
     //NOTE::Reading opcode at current pc
-    public byte readOpcode(short address){ return (byte)memory.getChar(address); }
+    public byte readOpcode(int address){ return (byte) memory.getChar(address); }
 
     //NOTE::Reads the Space Invaders' rom files
     //NOTE::Memory layout of the ROM
@@ -90,14 +90,14 @@ public class Mmu {
 
     //Memory with pixel buffer 2400 - 3FFF
     public byte[] getPixelBuffer(){
-        short startPixelBuffer = 0x2400;
-        short endPixelBuffer = 0x3FFF;
+        int startPixelBuffer = 0x2400;
+        int endPixelBuffer = 0x3FFF;
 
-        int pixelBufferSize = Gpu.getScreenXResolution() * Gpu.getScreenYResolution();
+        int pixelBufferSize = endPixelBuffer - startPixelBuffer + 1;
         byte[] pixelBuffer = new byte[pixelBufferSize];
 
         for(int i = startPixelBuffer; i <= endPixelBuffer; i++)
-            pixelBuffer[i - startPixelBuffer] = memory.get(i);
+            pixelBuffer[i - startPixelBuffer] = readByteData(i);
 
         return pixelBuffer;
     }

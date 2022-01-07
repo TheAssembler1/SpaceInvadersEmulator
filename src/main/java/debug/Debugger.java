@@ -213,7 +213,7 @@ public class Debugger{
         });
     }
 
-    public void update(short opcode){
+    public void update(int opcode){
         //NOTE::Checking if we are stepping through instructions
         if(stepThroughInstructions){
             while(!stepThroughNextInstruction)
