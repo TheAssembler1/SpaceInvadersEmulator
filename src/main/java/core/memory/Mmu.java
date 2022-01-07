@@ -23,6 +23,9 @@ public class Mmu {
 
     //NOTE::Read 8 bits of data
     public byte readByteData(int address){
+        if(address > memory.capacity())
+            System.out.println("OVER CAPACITY");
+
         return memory.get(address);
     }
 

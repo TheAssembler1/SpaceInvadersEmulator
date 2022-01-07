@@ -5,14 +5,13 @@
 package core;
 
 import core.cpu.Intel8080;
+import core.cpu.Intel8080Runner;
 import core.gpu.Gpu;
 import debug.Debugger;
 import core.memory.Mmu;
-import util.Timer;
 
 
 public class Entry {
-    @SuppressWarnings("InfiniteLoopStatement")
     public static void main(String[] args) throws InterruptedException {
         /*
          * 0000-1FFF 8K ROM
@@ -24,25 +23,12 @@ public class Entry {
         mmu.loadRom();
 
         Intel8080 cpu = new Intel8080(mmu);
+
+        Debugger debugger = new Debugger(Debugger.RunMode.STEP_INSTRUCTIONS);
+
         Gpu gpu = new Gpu(cpu);
 
-        Debugger debugger = new Debugger(cpu, gpu, Debugger.RunMode.STEP_INSTRUCTIONS);
-
-        while(true){
-            for(int i = 0; i <= cpu.cyclesPerSecond; i += cpu.getCycles()) {
-                //NOTE::Updating the debugger
-                debugger.update();
-                //NOTE::Rendering pixel window
-                gpu.increaseAvailableCycles(cpu.getCycles());
-                gpu.repaint();
-                int opcode = Byte.toUnsignedInt(mmu.readByteData(cpu.getPCReg()));
-                //NOTE::Converting signed byte to unsigned int
-                cpu.executeOpcode(opcode);
-                //NOTE::Rendering pixel window
-                gpu.increaseAvailableCycles(cpu.getCycles());
-                gpu.repaint();
-            }
-            cpu.resetCycles();
-        }
+        Intel8080Runner cpuRunner = new Intel8080Runner(cpu, mmu, gpu, debugger);
+        cpuRunner.run();
     }
 }

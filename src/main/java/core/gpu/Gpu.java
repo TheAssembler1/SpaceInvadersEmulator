@@ -42,10 +42,8 @@ public class Gpu extends JPanel{
     }
 
     private void drawScreen(Graphics g){
-        while(availableCycles > 68) {
-            System.out.println("INFO::Rendering half of line");
-
-            availableCycles -= 68;
+        while(availableCycles > 277) {
+            availableCycles -= 277;
 
             byte[] pixelBuffer = cpu.getPixelBuffer();
 

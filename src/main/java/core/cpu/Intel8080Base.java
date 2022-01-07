@@ -4,16 +4,13 @@ import core.memory.Mmu;
 
 import java.nio.ByteBuffer;
 
-public abstract class Intel8080Base {
+public abstract class Intel8080Base{
     private final Registers registers = new Registers();
 
     protected final Mmu mmu;
     protected int cycles = 0;
 
     public final int cyclesPerSecond = 33333;
-
-    protected boolean cpuStoppped = false;
-    protected boolean intEnabled = true;
 
     private static class Registers {
         byte a;
@@ -609,11 +606,11 @@ public abstract class Intel8080Base {
     public String registersToString(){
         String string = "";
 
-        string = string.concat(String.format("AF: %4x | A: %2x | F: %2x\n", getRegisterShortValue(Register.AF), registers.a, registers.f));
-        string = string.concat(String.format("BC: %4x | B: %2x | C: %2x\n", getRegisterShortValue(Register.BC), registers.b, registers.c));
-        string = string.concat(String.format("DE: %4x | D: %2x | E: %2x\n", getRegisterShortValue(Register.DE), registers.d, registers.e));
-        string = string.concat(String.format("HL: %4x | H: %2x | L: %2x\n", getRegisterShortValue(Register.HL), registers.h, registers.l));
-        string = string.concat(String.format("SP: %4x\n", registers.sp));
+        string = string.concat(String.format("AF: %4x | A: %2x | F: %2x\n", getRegisterShortValue(Register.AF), getRegisterByteValue(Register.A), getRegisterByteValue(Register.F)));
+        string = string.concat(String.format("BC: %4x | B: %2x | C: %2x\n", getRegisterShortValue(Register.BC),getRegisterByteValue(Register.B), getRegisterByteValue(Register.C)));
+        string = string.concat(String.format("DE: %4x | D: %2x | E: %2x\n", getRegisterShortValue(Register.DE), getRegisterByteValue(Register.D),getRegisterByteValue(Register.E)));
+        string = string.concat(String.format("HL: %4x | H: %2x | L: %2x\n", getRegisterShortValue(Register.HL), getRegisterByteValue(Register.H), getRegisterByteValue(Register.L)));
+        string = string.concat(String.format("SP: %4x\n", getRegisterShortValue(Register.SP)));
         string = string.concat(String.format("PC: %4x", getRegisterShortValue(Register.PC)));
 
         return string;

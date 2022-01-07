@@ -14,8 +14,6 @@ public class Debugger{
     Font fontTextArea = new Font(Font.SERIF, Font.PLAIN, 14);
     Font fontTextField = new Font(Font.SERIF, Font.BOLD, 14);
 
-    Intel8080 cpu;
-    Gpu gpu;
     Window window;
 
     //NOTE::JSwing widgets
@@ -52,10 +50,9 @@ public class Debugger{
         RUN_INSTRUCTIONS, STEP_INSTRUCTIONS
     }
 
-    public Debugger(Intel8080 cpu, Gpu gpu, RunMode runMode){
-        this.cpu = cpu;
-        this.gpu = gpu;
+    public Debugger(RunMode runMode){
         window = new Window("Debugger");
+        window.setPreferredSize(new Dimension(500, 500));
 
         //NOTE::Setting the properties of the widgets
         setWindowProperties();
@@ -146,8 +143,8 @@ public class Debugger{
                 textFieldInsets.right
         );
 
-        setTextAreaDefaultProperties(registersTextArea, etchedBorder, insetsBorder, cpu.registersToString());
-        setTextAreaDefaultProperties(flagsTextArea, etchedBorder, insetsBorder, cpu.flagsToString());
+        setTextAreaDefaultProperties(registersTextArea, etchedBorder, insetsBorder, "");
+        setTextAreaDefaultProperties(flagsTextArea, etchedBorder, insetsBorder, "");
 
         setTextFieldDefaultProperties(registersTextField, etchedBorder, insetsBorder, "Registers:");
         setTextFieldDefaultProperties(flagsTextField, etchedBorder, insetsBorder, "Flags:");
@@ -197,7 +194,7 @@ public class Debugger{
         });
     }
 
-    public void update(){
+    public void update(Intel8080 cpu, Gpu gpu){
         registersTextArea.setText(cpu.registersToString());
         flagsTextArea.setText(cpu.flagsToString());
         opcodeStringTextField.setText(cpu.getOpcodeString());
