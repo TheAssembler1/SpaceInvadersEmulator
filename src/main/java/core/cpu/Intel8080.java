@@ -8,7 +8,7 @@ public class Intel8080 extends Intel8080Base{
         void execute();
     }
 
-    Opcode[] opcodes = new Opcode[0xFF];
+    Opcode[] opcodes = new Opcode[0xFF + 1];
 
     public Intel8080(Mmu mmu) {
         super(mmu);
@@ -330,6 +330,16 @@ public class Intel8080 extends Intel8080Base{
         opcodes[0xDD] = this::callOpcode;
         opcodes[0xED] = this::callOpcode;
         opcodes[0xFD] = this::callOpcode;
+        //NOTE::RST num | 1 | 11 | - - - - -
+        opcodes[0xC7] = () -> rstOpcode((short)0);
+        opcodes[0xD7] = () -> rstOpcode((short)2);
+        opcodes[0xE7] = () -> rstOpcode((short)4);
+        opcodes[0xF7] = () -> rstOpcode((short)6);
+
+        opcodes[0xCF] = () -> rstOpcode((short)1);
+        opcodes[0xDF] = () -> rstOpcode((short)3);
+        opcodes[0xEF] = () -> rstOpcode((short)5);
+        opcodes[0xFF] = () -> rstOpcode((short)11);
     }
 
     public void executeOpcode(int opcode){
@@ -339,15 +349,15 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::NOP | 1 | 4 | - - - - -
     private void nopOpcode(){
         setRegisterShortRelativeTo(Register.PC, (short) 1);
-        cycles += 4;
+        cycles = 4;
     }
 
     //NOTE::LXI reg, d16 | 3 | 10 | - - - - -
     private void lxiOpcode(Register reg){
-        setRegisterShortValue(reg, mmu.readShortData((getRegisterShortValue(Register.PC) + 1)));
+        setRegisterShortValue(reg, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
 
         setRegisterShortRelativeTo(Register.PC, (short) 3);
-        cycles += 10;
+        cycles = 10;
     }
 
     //NOTE::STAX reg | 1 | 7 | - - - - -
@@ -355,7 +365,7 @@ public class Intel8080 extends Intel8080Base{
         mmu.setShortData(getRegisterShortValue(reg), getRegisterShortValue(Register.AF));
 
         setRegisterShortRelativeTo(Register.PC, (short) 1);
-        cycles += 7;
+        cycles = 7;
     }
 
     //NOTE::SHLD a16 | 3 | 16 | - - - - -
@@ -363,7 +373,7 @@ public class Intel8080 extends Intel8080Base{
         mmu.setShortData(mmu.readShortData(getRegisterShortValue(Register.PC) + 1), getRegisterShortValue(Register.HL));
 
         setRegisterShortRelativeTo(Register.PC, (short)3);
-        cycles += 16;
+        cycles = 16;
     }
 
     //NOTE::STA a16 | 3 | 13 | - - - - -
@@ -371,7 +381,7 @@ public class Intel8080 extends Intel8080Base{
         mmu.setByteData(mmu.readShortData(getRegisterShortValue(Register.PC) + 1), getRegisterByteValue(Register.A));
 
         setRegisterShortRelativeTo(Register.PC, (short) 3);
-        cycles += 16;
+        cycles = 16;
     }
 
     //NOTE::INX reg | 1 | 5 | - - - - -
@@ -379,7 +389,7 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortRelativeTo(reg, (short) 1);
 
         setRegisterShortRelativeTo(Register.PC, (short) 1);
-        cycles += 5;
+        cycles = 5;
     }
 
     //NOTE::INR reg | 1 | 5 M = 10 | S Z A P -
@@ -389,7 +399,7 @@ public class Intel8080 extends Intel8080Base{
         byte result = (byte) (value1 + value2);
 
         if(reg == Register.M)
-            cycles += 5;
+            cycles = 5;
 
         setRegisterByteRelativeTo(reg, (byte) 1);
 
@@ -398,7 +408,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetAuxiliaryCarryFlag(Operation.ADD, value1, value2);
         checkSetParityFlag(result);
 
-        cycles += 5;
+        cycles = 5;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -409,7 +419,7 @@ public class Intel8080 extends Intel8080Base{
         byte result = (byte) (value1 - value2);
 
         if(reg == Register.M)
-            cycles += 5;
+            cycles = 5;
 
         setRegisterByteRelativeTo(reg, (byte) -1);
 
@@ -418,18 +428,18 @@ public class Intel8080 extends Intel8080Base{
         checkSetAuxiliaryCarryFlag(Operation.SUB, value1, value2);
         checkSetParityFlag(result);
 
-        cycles += 5;
+        cycles = 5;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
     //NOTE::MVI reg, d8 | 2 | 7 M = 10 | - - - - -
     private void mviOpcode(Register reg){
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         setRegisterByteValue(reg, mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
 
-        cycles += 7;
+        cycles = 7;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
 
@@ -450,7 +460,7 @@ public class Intel8080 extends Intel8080Base{
         else
             setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortValue(Register.PC, (short) 1);
     }
 
@@ -468,7 +478,7 @@ public class Intel8080 extends Intel8080Base{
 
         swapAccumWithCarry(rotRight, bitOfAccum);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortValue(Register.PC, (short) 1);
     }
 
@@ -501,7 +511,7 @@ public class Intel8080 extends Intel8080Base{
 
         checkSetCarryFlag(Operation.ADD, getHighByteOfShort(value1), getHighByteOfShort(value2));
 
-        cycles += 10;
+        cycles = 10;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -509,7 +519,7 @@ public class Intel8080 extends Intel8080Base{
     private void ldaxOpcode(Register reg) {
         setRegisterByteValue(Register.A, mmu.readByteData(getRegisterShortValue(reg)));
 
-        cycles += 7;
+        cycles = 7;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -517,7 +527,7 @@ public class Intel8080 extends Intel8080Base{
     private void lhldOpcode(){
         setRegisterShortValue(Register.HL, mmu.readShortData(mmu.readShortData(getRegisterShortValue(Register.PC) + 1)));
 
-        cycles += 16;
+        cycles = 16;
         setRegisterShortRelativeTo(Register.PC, (short)3);
     }
 
@@ -525,7 +535,7 @@ public class Intel8080 extends Intel8080Base{
     private void ldaOpcode(){
         setRegisterByteValue(Register.A, mmu.readByteData(mmu.readShortData(getRegisterShortValue(Register.PC) + 1)));
 
-        cycles += 13;
+        cycles = 13;
         setRegisterShortRelativeTo(Register.PC, (short) 3);
     }
 
@@ -533,7 +543,7 @@ public class Intel8080 extends Intel8080Base{
     private void dcxOpcode(Register reg){
         setRegisterShortRelativeTo(reg, (short) -1);
 
-        cycles += 5;
+        cycles = 5;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -541,7 +551,7 @@ public class Intel8080 extends Intel8080Base{
     private void cmaOpcode(){
         setRegisterByteRelativeTo(Register.A, (byte) ~getRegisterByteValue(Register.A));
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -552,18 +562,18 @@ public class Intel8080 extends Intel8080Base{
         else
             setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.TRUE);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortValue(Register.PC, (short) 1);
     }
 
     //NOTE::MOV reg, reg | 1 | 5 M = 7 | - - - - -
     private void movOpcode(Register reg1, Register reg2){
         if(reg1 == Register.M || reg2 == Register.M)
-            cycles += 2;
+            cycles = 2;
 
         setRegisterByteValue(reg1, getRegisterByteValue(reg2));
 
-        cycles += 5;
+        cycles = 5;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -571,7 +581,7 @@ public class Intel8080 extends Intel8080Base{
     private void hltOpcode(){
         cpuStoppped = true;
 
-        cycles += 7;
+        cycles = 7;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -587,7 +597,7 @@ public class Intel8080 extends Intel8080Base{
         setRegisterByteValue(Register.A, result);
 
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         checkSetSignFlag(result);
         checkSetZeroFlag(result);
@@ -595,7 +605,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag(result);
         checkSetCarryFlag(Operation.ADD, value1, value2);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -611,7 +621,7 @@ public class Intel8080 extends Intel8080Base{
         setRegisterByteValue(Register.A, result);
 
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         checkSetSignFlag(result);
         checkSetZeroFlag(result);
@@ -619,7 +629,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag(result);
         checkSetCarryFlag(Operation.SUB, value1, value2);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -628,7 +638,7 @@ public class Intel8080 extends Intel8080Base{
         byte result = (byte) (getRegisterByteValue(Register.A) & getRegisterByteValue(reg));
 
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         setRegisterByteValue(Register.A, result);
 
@@ -642,7 +652,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag(result);
         setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -651,7 +661,7 @@ public class Intel8080 extends Intel8080Base{
         byte result = (byte) (getRegisterByteValue(Register.A) ^ getRegisterByteValue(reg));
 
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         setRegisterByteValue(Register.A, result);
 
@@ -665,7 +675,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag(result);
         setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -674,7 +684,7 @@ public class Intel8080 extends Intel8080Base{
         byte result = (byte) (getRegisterByteValue(Register.A) | getRegisterByteValue(reg));
 
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         setRegisterByteValue(Register.A, result);
 
@@ -688,7 +698,7 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag(result);
         setFlag(FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.NULL, FlagChoice.FALSE);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -699,7 +709,7 @@ public class Intel8080 extends Intel8080Base{
         byte result = (byte) (value1 - value2);
 
         if(reg == Register.M)
-            cycles += 3;
+            cycles = 3;
 
         checkSetSignFlag(result);
         checkSetZeroFlag(result);
@@ -707,21 +717,21 @@ public class Intel8080 extends Intel8080Base{
         checkSetParityFlag(result);
         checkSetCarryFlag(Operation.SUB, value1, value2);
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
     //NOTE::RF/RT | 1 | 11/5 | - - - - -
     private void rtfOpcode(Flags flag, FlagChoice flagChoice){
         if ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE)){
-            cycles += 5;
+            cycles = 5;
             setRegisterShortRelativeTo(Register.PC, (short) 1);
             return;
         }
 
         setRegisterShortRelativeTo(Register.SP, (short) 2);
 
-        cycles += 11;
+        cycles = 11;
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
     }
 
@@ -730,7 +740,7 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortValue(reg, mmu.readShortData(getRegisterShortValue(Register.SP)));
         setRegisterShortRelativeTo(Register.SP, (short) 2);
 
-        cycles += 10;
+        cycles = 10;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -738,17 +748,17 @@ public class Intel8080 extends Intel8080Base{
     private void jtfOpcode(Flags flag, FlagChoice flagChoice){
         if((getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
             setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
-            cycles += 7;
+            cycles = 7;
         }
         else
             setRegisterShortRelativeTo(Register.PC, (short) 3);
 
-        cycles += 3;
+        cycles = 3;
     }
 
     //NOTE::JMP a16 | 3 | 10 | - - - - -
     private void jmpOpcode(){
-        cycles += 10;
+        cycles = 10;
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
@@ -757,12 +767,12 @@ public class Intel8080 extends Intel8080Base{
     private void xchOpcode(Register reg){
         short hlReg = getRegisterShortValue(Register.HL);
 
-        if(reg == Register.SP) { cycles += 13; }
+        if(reg == Register.SP) { cycles = 13; }
 
         setRegisterShortValue(Register.HL, getRegisterShortValue(reg));
         setRegisterShortValue(reg, hlReg);
 
-        cycles += 5;
+        cycles = 5;
         setRegisterShortRelativeTo(Register.PC, (short)1);
     }
 
@@ -773,7 +783,7 @@ public class Intel8080 extends Intel8080Base{
         else
             intEnabled = false;
 
-        cycles += 4;
+        cycles = 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -781,7 +791,7 @@ public class Intel8080 extends Intel8080Base{
     private void ctfOpcode(Flags flag, FlagChoice flagChoice) {
         //NOTE::Checking if we should not jump
         if ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE)){
-            cycles += 11;
+            cycles = 11;
             setRegisterShortValue(Register.PC, (short) 11);
             return;
         }
@@ -790,7 +800,7 @@ public class Intel8080 extends Intel8080Base{
         mmu.setShortData(getRegisterShortValue(Register.SP), (short) (getRegisterShortValue(Register.PC) + 3));
         setRegisterShortRelativeTo(Register.SP, (short) -2);
 
-        cycles += 17;
+        cycles = 17;
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
@@ -799,7 +809,7 @@ public class Intel8080 extends Intel8080Base{
         mmu.setShortData(getRegisterShortValue(Register.SP), getRegisterShortValue(reg));
         setRegisterShortRelativeTo(Register.SP, (short) -2);
 
-        cycles += 11;
+        cycles = 11;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -810,7 +820,7 @@ public class Intel8080 extends Intel8080Base{
         byte value2 = mmu.readByteData(getRegisterShortValue(Register.PC) + 1);
         byte result = 0;
 
-        cycles += 7;
+        cycles = 7;
 
         if(addCarry && getFlag(Flags.CARRY_FLAG))
             result++;
@@ -852,7 +862,7 @@ public class Intel8080 extends Intel8080Base{
     private void retOpcode(){
         setRegisterShortRelativeTo(Register.SP, (short) 2);
 
-        cycles += 10;
+        cycles = 10;
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
     }
 
@@ -860,7 +870,7 @@ public class Intel8080 extends Intel8080Base{
     private void ldpcOpcode(Register reg){
         setRegisterShortValue(Register.PC, getRegisterShortValue(reg));
 
-        cycles += 5;
+        cycles = 5;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
 
@@ -868,15 +878,14 @@ public class Intel8080 extends Intel8080Base{
     //NOTE::OUT d8 | 2 | 10 | - - - - -
     private void outOpcode(){
         System.out.println("INFO::OUT: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
-        cycles += 10;
+        cycles = 10;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
 
     //FIXME::Temp code for input
     //NOTE::IN d8 | 2 | 10 | - - - - -
     private void inOpcode(){
-        System.out.println("INFO::IN: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
-        cycles += 10;
+        cycles = 10;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
 
@@ -886,19 +895,17 @@ public class Intel8080 extends Intel8080Base{
         mmu.setShortData(getRegisterShortValue(Register.SP), (short) (getRegisterShortValue(Register.PC) + 3));
         setRegisterShortRelativeTo(Register.SP, (short) -2);
 
-        cycles += 17;
+        cycles = 17;
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
-    public String registersToString(){
-        return super.registersToString();
-    }
+    //NOTE::RST num | 1 | 11 | - - - - -
+    public void rstOpcode(short interrupt){
+        //NOTE::Setting the stack pointer
+        mmu.setShortData(getRegisterShortValue(Register.SP), getRegisterShortValue(Register.PC));
+        setRegisterShortRelativeTo(Register.SP, (short) -2);
 
-    public String flagsToString(){
-        return super.flagsToString();
-    }
-
-    public String opcodeToString(int opcode){
-        return getOpcodeString((short) opcode);
+        cycles = 11;
+        setRegisterShortValue(Register.PC, (short) 8);
     }
 }

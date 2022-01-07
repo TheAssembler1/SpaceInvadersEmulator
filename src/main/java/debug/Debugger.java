@@ -1,6 +1,7 @@
 package debug;
 
 import core.cpu.Intel8080;
+import core.gpu.Gpu;
 import util.Window;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ public class Debugger{
     Font fontTextField = new Font(Font.SERIF, Font.BOLD, 14);
 
     Intel8080 cpu;
+    Gpu gpu;
     Window window;
 
     //NOTE::JSwing widgets
@@ -27,8 +29,7 @@ public class Debugger{
     JTextField registersTextField = new JTextField("Registers");
     JTextField flagsTextField = new JTextField("Flags");
     JTextField opcodeStringTextField = new JTextField("");
-    JTextField opcodeNumField = new JTextField("");
-    JTextField cyclesTextField = new JTextField("Cycles: ");
+    JTextField gpuCyclesTextField = new JTextField("GPU Cycles: ");
 
     //NOTE::Actual text areas
     JTextArea registersTextArea = new JTextArea("");
@@ -51,8 +52,9 @@ public class Debugger{
         RUN_INSTRUCTIONS, STEP_INSTRUCTIONS
     }
 
-    public Debugger(Intel8080 cpu, RunMode runMode){
+    public Debugger(Intel8080 cpu, Gpu gpu, RunMode runMode){
         this.cpu = cpu;
+        this.gpu = gpu;
         window = new Window("Debugger");
 
         //NOTE::Setting the properties of the widgets
@@ -80,10 +82,11 @@ public class Debugger{
         if(runMode == RunMode.RUN_INSTRUCTIONS){
             runModeButtons.setSelected(runInstructions.getModel(), true);
             stepThroughInstructions = false;
+            stepThroughNextInstruction = true;
         }else{
             runModeButtons.setSelected(stepInstructions.getModel(), true);
             stepThroughInstructions = true;
-            stepThroughNextInstruction = true;
+            stepThroughNextInstruction = false;
         }
     }
 
@@ -101,8 +104,7 @@ public class Debugger{
         verticalBox.add(Box.createVerticalStrut(2));
         verticalBox.add(flagsTextArea);
         verticalBox.add(opcodeStringTextField);
-        verticalBox.add(opcodeNumField);
-        verticalBox.add(cyclesTextField);
+        verticalBox.add(gpuCyclesTextField);
 
         //NOTE::Adding boxes to the panel
         panel.add(horizontalBox);
@@ -150,8 +152,7 @@ public class Debugger{
         setTextFieldDefaultProperties(registersTextField, etchedBorder, insetsBorder, "Registers:");
         setTextFieldDefaultProperties(flagsTextField, etchedBorder, insetsBorder, "Flags:");
         setTextFieldDefaultProperties(opcodeStringTextField, etchedBorder, insetsBorder, "");
-        setTextFieldDefaultProperties(opcodeNumField, etchedBorder, insetsBorder, "");
-        setTextFieldDefaultProperties(cyclesTextField, etchedBorder, insetsBorder, "");
+        setTextFieldDefaultProperties(gpuCyclesTextField, etchedBorder, insetsBorder, "");
     }
 
     private void setTextFieldDefaultProperties(JTextField textField, Border etchedBorder, Border insetsBorder, String defaultText){
@@ -196,19 +197,17 @@ public class Debugger{
         });
     }
 
-    public void update(int opcode){
+    public void update(){
+        registersTextArea.setText(cpu.registersToString());
+        flagsTextArea.setText(cpu.flagsToString());
+        opcodeStringTextField.setText(cpu.getOpcodeString());
+        gpuCyclesTextField.setText("GPU Cycles: " + gpu.getCycles());
+
         //NOTE::Checking if we are stepping through instructions
         if(stepThroughInstructions){
             while(!stepThroughNextInstruction)
                 Thread.onSpinWait();
             stepThroughNextInstruction = false;
         }
-
-        registersTextArea.setText(cpu.registersToString());
-        flagsTextArea.setText(cpu.flagsToString());
-        opcodeStringTextField.setText(cpu.opcodeToString(opcode));
-        cyclesTextField.setText("Cycles: " + cpu.getCycles());
-
-        opcodeNumField.setText(String.format("Hex: %x | Dec: %d", opcode, opcode));
     }
 }

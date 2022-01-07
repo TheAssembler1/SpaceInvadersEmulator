@@ -371,7 +371,7 @@ public abstract class Intel8080Base {
         setRegisterShortValue(regPair, (short) (getRegisterShortValue(regPair) + value));
     }
 
-    protected short getRegisterShortValue(Register regPair) {
+    public short getRegisterShortValue(Register regPair) {
         ByteBuffer bb = ByteBuffer.allocate(2);
 
         switch (regPair) {
@@ -604,7 +604,7 @@ public abstract class Intel8080Base {
 
     public int getCycles() { return cycles; }
 
-    public void resetCycles() { cycles -= getCycles(); }
+    public void resetCycles() { cycles = 0; }
 
     public String registersToString(){
         String string = "";
@@ -614,7 +614,7 @@ public abstract class Intel8080Base {
         string = string.concat(String.format("DE: %4x | D: %2x | E: %2x\n", getRegisterShortValue(Register.DE), registers.d, registers.e));
         string = string.concat(String.format("HL: %4x | H: %2x | L: %2x\n", getRegisterShortValue(Register.HL), registers.h, registers.l));
         string = string.concat(String.format("SP: %4x\n", registers.sp));
-        string = string.concat(String.format("PC: %4x", registers.pc));
+        string = string.concat(String.format("PC: %4x", getRegisterShortValue(Register.PC)));
 
         return string;
     }
@@ -640,7 +640,8 @@ public abstract class Intel8080Base {
         return string;
     }
 
-    public String getOpcodeString(short opcode){
-        return opcodesStrings[opcode];
+    public String getOpcodeString(){
+        int regPC = Short.toUnsignedInt(getRegisterShortValue(Register.PC));
+        return opcodesStrings[Byte.toUnsignedInt(mmu.readByteData(regPC))];
     }
 }

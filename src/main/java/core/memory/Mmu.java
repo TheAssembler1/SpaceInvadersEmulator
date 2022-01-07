@@ -36,9 +36,6 @@ public class Mmu {
         memory.put(address, value);
     }
 
-    //NOTE::Reading opcode at current pc
-    public byte readOpcode(int address){ return (byte) memory.getChar(address); }
-
     //NOTE::Reads the Space Invaders' rom files
     //NOTE::Memory layout of the ROM
     /*
