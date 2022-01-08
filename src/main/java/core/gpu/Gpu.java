@@ -27,7 +27,7 @@ public class Gpu extends JPanel{
         window = new Window("Space Invaders");
         this.cpu = cpu;
 
-        setPreferredSize(new Dimension(screenXResolution, screenYResolution));
+        setPreferredSize(new Dimension(screenYResolution, screenXResolution));
 
         window.add(this);
         window.pack();
@@ -76,14 +76,14 @@ public class Gpu extends JPanel{
 
             for(int j = 0; j < 8; j++){
                 if(cpu.getBitOfByte(currentByte, j))
-                    g.setColor(Color.GREEN);
+                    g.setColor(Color.WHITE);
                 else
-                    g.setColor(Color.BLUE);
+                    g.setColor(Color.BLACK);
 
                 int x = (i * 8 + j + 1) % screenXResolution;
                 int y = (i * 8 + j + 1) / screenXResolution;
 
-                g.drawRect(x, y, 1, 1);
+                g.drawRect(y, screenXResolution - x, 1, 1);
             }
         }
     }
