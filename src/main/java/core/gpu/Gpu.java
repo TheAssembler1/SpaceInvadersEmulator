@@ -20,8 +20,13 @@ public class Gpu extends JPanel{
 
     int availableCycles = 0;
 
-    short midScreenInterrupt = 0x8;
-    short endScreenInterrupt = 0x10;
+    public enum GPU_STATE{
+        NONE,
+        MID_SCREEN_INTERRUPT,
+        FULL_SCREEN_INTERRUPT
+    }
+
+    private GPU_STATE gpuState = GPU_STATE.NONE;
 
     public Gpu(Intel8080 cpu){
         window = new Window("Space Invaders");
@@ -43,6 +48,8 @@ public class Gpu extends JPanel{
     }
 
     private void drawScreen(Graphics g){
+        gpuState = GPU_STATE.NONE;
+
         if(availableCycles > halfScreenCycles) {
             availableCycles -= halfScreenCycles;
 
@@ -52,19 +59,17 @@ public class Gpu extends JPanel{
             int endingPixel;
 
             if(halfScreenInterrupt){
-                System.out.println("INFO::Drawing half of the screen");
+                gpuState = GPU_STATE.MID_SCREEN_INTERRUPT;
                 halfScreenInterrupt = false;
 
                 startingPixel = 0;
                 endingPixel = currentPixelBuffer.length / 2 - 1;
-                //cpu.executeOpcode(midScreenInterrupt);
             }else{
-                System.out.println("INFO::Drawing end of the screen");
+                gpuState = GPU_STATE.FULL_SCREEN_INTERRUPT;
                 halfScreenInterrupt = true;
 
                 startingPixel = currentPixelBuffer.length / 2;
                 endingPixel = currentPixelBuffer.length - 1;
-                //cpu.executeOpcode(endScreenInterrupt);
             }
 
             if (endingPixel + 1 - startingPixel >= 0)
@@ -86,6 +91,10 @@ public class Gpu extends JPanel{
                 g.drawRect(y, screenXResolution - x, 1, 1);
             }
         }
+    }
+
+    public GPU_STATE getGpuState(){
+        return gpuState;
     }
 
     public int getCycles(){

@@ -4,14 +4,20 @@ import core.memory.Mmu;
 import debug.Debugger;
 
 public class Intel8080 extends Intel8080Base{
+    Debugger debugger;
+
+    private boolean intEnabled = false;
+
     private interface Opcode{
         void execute();
     }
 
     Opcode[] opcodes = new Opcode[0xFF + 1];
 
-    public Intel8080(Mmu mmu) {
+    public Intel8080(Mmu mmu, Debugger debugger) {
         super(mmu);
+
+        this.debugger = debugger;
 
         //NOTE::NOP | 1 | 4 | - - - - -
         opcodes[0x00] = this::nopOpcode;
@@ -740,24 +746,6 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
     }
 
-    //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
-    private void popOpcode(Register reg){
-        setRegisterShortRelativeTo(Register.SP, (short) 2);
-        setRegisterShortValue(reg, mmu.readShortData(getRegisterShortValue(Register.SP)));
-
-        cycles += 10;
-        setRegisterShortRelativeTo(Register.PC, (short) 1);
-    }
-
-    //NOTE::PUSH reg | 1 | 11 | - - - -
-    private void pushOpcode(Register reg){
-        mmu.setShortData(getRegisterShortValue(Register.SP), getRegisterShortValue(reg));
-        setRegisterShortRelativeTo(Register.SP, (short) -2);
-
-        cycles += 11;
-        setRegisterShortRelativeTo(Register.PC, (short) 1);
-    }
-
     //NOTE::JT/JF a16 | 3 | 10 | - - - - -
     private void jtfOpcode(Flags flag, FlagChoice flagChoice){
         if((getFlag(flag) && flagChoice == FlagChoice.TRUE) || (!getFlag(flag) && flagChoice == FlagChoice.FALSE)){
@@ -792,34 +780,14 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::DI/EI | 1 | 4 | - - - - -
     private void intOpcode(boolean enable){
-        //FIXME::
-        /*
         if(enable)
             intEnabled = true;
         else
-            intEnabled = false;*/
+            intEnabled = false;
 
         cycles += 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
     }
-
-    //CT/CF a16 | 3 | 17/11 | - - - - -
-    private void ctfOpcode(Flags flag, FlagChoice flagChoice) {
-        //NOTE::Checking if we should not jump
-        if ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE)){
-            cycles += 11;
-            setRegisterShortRelativeTo(Register.PC, (short) 3);
-            return;
-        }
-
-        //NOTE::Setting the stack pointer
-        mmu.setShortData(getRegisterShortValue(Register.SP), (short) (getRegisterShortValue(Register.PC) + 3));
-        setRegisterShortRelativeTo(Register.SP, (short) -2);
-
-        cycles += 17;
-        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
-    }
-
 
     //NOTE::OPI d8 | 2 | 7 | S Z A P C
     private void opiOpcode(Operation operation, boolean addCarry){
@@ -865,14 +833,6 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
 
-    //NOTE::RET | 1 | 10 | - - - - -
-    private void retOpcode(){
-        setRegisterShortRelativeTo(Register.SP, (short) 2);
-
-        cycles += 10;
-        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
-    }
-
     //NOTE::PCHL/SPHL | 1 | 5 | - - - - -
     private void ldpcOpcode(Register reg){
         setRegisterShortValue(Register.PC, getRegisterShortValue(reg));
@@ -884,7 +844,6 @@ public class Intel8080 extends Intel8080Base{
     //FIXME::Temp code for output
     //NOTE::OUT d8 | 2 | 10 | - - - - -
     private void outOpcode(){
-        System.out.println("INFO::OUT: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
         cycles += 10;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
@@ -894,6 +853,40 @@ public class Intel8080 extends Intel8080Base{
     private void inOpcode(){
         cycles += 10;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
+    }
+
+    //NOTE::RET | 1 | 10 | - - - - -
+    private void retOpcode(){
+        setRegisterShortRelativeTo(Register.SP, (short) 2);
+
+        cycles += 10;
+        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.SP)));
+    }
+
+    //NOTE::POP reg | 1 | 10 | - - - - - PSW =  S Z A P C
+    private void popOpcode(Register reg){
+        setRegisterShortRelativeTo(Register.SP, (short) 2);
+        setRegisterShortValue(reg, mmu.readShortData(getRegisterShortValue(Register.SP)));
+
+        cycles += 10;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
+    //CT/CF a16 | 3 | 17/11 | - - - - -
+    private void ctfOpcode(Flags flag, FlagChoice flagChoice) {
+        //NOTE::Checking if we should not jump
+        if ((!getFlag(flag) && flagChoice == FlagChoice.TRUE) || (getFlag(flag) && flagChoice == FlagChoice.FALSE)){
+            cycles += 11;
+            setRegisterShortRelativeTo(Register.PC, (short) 3);
+            return;
+        }
+
+        //NOTE::Setting the stack pointer
+        mmu.setShortData(getRegisterShortValue(Register.SP), (short) (getRegisterShortValue(Register.PC) + 3));
+        setRegisterShortRelativeTo(Register.SP, (short) -2);
+
+        cycles += 17;
+        setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
     //NOTE::CALL a16 | 3 | 17 | - - - - -
@@ -907,6 +900,15 @@ public class Intel8080 extends Intel8080Base{
         setRegisterShortValue(Register.PC, mmu.readShortData(getRegisterShortValue(Register.PC) + 1));
     }
 
+    //NOTE::PUSH reg | 1 | 11 | - - - -
+    private void pushOpcode(Register reg){
+        mmu.setShortData(getRegisterShortValue(Register.SP), getRegisterShortValue(reg));
+        setRegisterShortRelativeTo(Register.SP, (short) -2);
+
+        cycles += 11;
+        setRegisterShortRelativeTo(Register.PC, (short) 1);
+    }
+
     //NOTE::RST num | 1 | 11 | - - - - -
     public void rstOpcode(short interrupt){
         //NOTE::Setting the stack pointer
@@ -915,5 +917,10 @@ public class Intel8080 extends Intel8080Base{
 
         cycles += 11;
         setRegisterShortValue(Register.PC, interrupt);
+    }
+
+    //FIXME::CRAPPY WAY OF DOING THIS
+    public boolean isIntEnabled(){
+        return intEnabled;
     }
 }
