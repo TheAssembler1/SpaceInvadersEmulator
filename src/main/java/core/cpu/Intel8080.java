@@ -288,9 +288,6 @@ public class Intel8080 extends Intel8080Base{
         //NOTE::JMP a16 | 3 | 10 | - - - - -
         opcodes[0xC3] = this::jmpOpcode;
         opcodes[0xCB] = this::jmpOpcode;
-        //FIXME::Temp code for input
-        //NOTE::OUT d8 | 2 | 10 | - - - -
-        opcodes[0xD3] = this::outOpcode;
         //NOTE::XCHG/XTHL | 1 | 5/18 | - - - -
         opcodes[0xE3] = () -> xchOpcode(Register.SP);
         opcodes[0xEB] = () -> xchOpcode(Register.DE);
@@ -331,6 +328,8 @@ public class Intel8080 extends Intel8080Base{
         //FIXME::Temp code for input
         //NOTE::IN d8 | 2 | 10 | - - - -
         opcodes[0xDB] = this::inOpcode;
+        //NOTE::OUT d8 | 2 | 10 | - - - -
+        opcodes[0xD3] = this::outOpcode;
         //NOTE::CALL a16 | 3 | 17 | - - - - -
         opcodes[0xCD] = this::callOpcode;
         opcodes[0xDD] = this::callOpcode;
@@ -780,10 +779,7 @@ public class Intel8080 extends Intel8080Base{
 
     //NOTE::DI/EI | 1 | 4 | - - - - -
     private void intOpcode(boolean enable){
-        if(enable)
-            intEnabled = true;
-        else
-            intEnabled = false;
+        intEnabled = enable;
 
         cycles += 4;
         setRegisterShortRelativeTo(Register.PC, (short) 1);
@@ -807,7 +803,7 @@ public class Intel8080 extends Intel8080Base{
             case OR -> result += (byte) (value1 | value2);
             case XOR -> result += (byte) (value1 ^ value2);
             case NULL -> {
-                result += (byte) (value1 - value2);
+                result = (byte) (value1 - value2);
 
                 checkSetSignFlag(result);
                 checkSetZeroFlag(result);
@@ -844,6 +840,8 @@ public class Intel8080 extends Intel8080Base{
     //FIXME::Temp code for output
     //NOTE::OUT d8 | 2 | 10 | - - - - -
     private void outOpcode(){
+        System.out.println("OUT: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
+
         cycles += 10;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }
@@ -851,6 +849,8 @@ public class Intel8080 extends Intel8080Base{
     //FIXME::Temp code for input
     //NOTE::IN d8 | 2 | 10 | - - - - -
     private void inOpcode(){
+        System.out.println("IN: " + mmu.readByteData(getRegisterShortValue(Register.PC) + 1));
+
         cycles += 10;
         setRegisterShortRelativeTo(Register.PC, (short) 2);
     }

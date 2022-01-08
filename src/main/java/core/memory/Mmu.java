@@ -36,6 +36,20 @@ public class Mmu {
         memory.put(address, value);
     }
 
+    //NOTE::Loads the test rom
+    public void loadTestRom(){
+        try{
+            File file = new File("Roms/Intel8080Test/TEST.COM");
+
+            byte[] fileByteArray = Files.readAllBytes(file.toPath());
+
+            for(int i = 0; i < fileByteArray.length; i++)
+                memory.put(i, fileByteArray[i]);
+        }catch(NullPointerException | IOException e){
+            System.out.println(e);
+        }
+    }
+
     //NOTE::Reads the Space Invaders' rom files
     //NOTE::Memory layout of the ROM
     /*
@@ -58,10 +72,10 @@ public class Mmu {
         int endOfInvadersERom = 0x1FFF;
 
         try{
-            File fileH = new File("SpaceInvadersRom/invaders.h");
-            File fileG = new File("SpaceInvadersRom/invaders.g");
-            File fileF = new File("SpaceInvadersRom/invaders.f");
-            File fileE = new File("SpaceInvadersRom/invaders.e");
+            File fileH = new File("Roms/SpaceInvaders/invaders.h");
+            File fileG = new File("Roms/SpaceInvaders/invaders.g");
+            File fileF = new File("Roms/SpaceInvaders/invaders.f");
+            File fileE = new File("Roms/SpaceInvaders/invaders.e");
 
             byte[] fileByteArrayH = Files.readAllBytes(fileH.toPath());
             byte[] fileByteArrayG = Files.readAllBytes(fileG.toPath());

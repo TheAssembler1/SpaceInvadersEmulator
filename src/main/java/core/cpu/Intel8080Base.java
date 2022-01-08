@@ -334,6 +334,8 @@ public abstract class Intel8080Base{
 
     public Intel8080Base(Mmu mmu) {
         this.mmu = mmu;
+
+        setRegisterShortValue(Register.PC, (short) 0xC1);
     }
 
     protected void setRegisterShortValue(Register regPair, short value) {
@@ -597,8 +599,6 @@ public abstract class Intel8080Base{
     }
 
     public int getCycles() { return cycles; }
-
-    public void resetCycles() { cycles = 0; }
 
     public String registersToString(){
         String string = "";

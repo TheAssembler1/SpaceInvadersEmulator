@@ -6,7 +6,6 @@ import debug.Debugger;
 
 public class Intel8080Runner implements Runnable{
     private boolean intEnabled = false;
-    private boolean cpuEnabled = true;
 
     short midScreenInterrupt = 0x8;
     short endScreenInterrupt = 0x10;
@@ -30,6 +29,9 @@ public class Intel8080Runner implements Runnable{
             for(int i = 0; i <= cpu.cyclesPerSecond; i += cpu.getCycles()) {
                 debugger.update(cpu, gpu);
                 int opcode = Byte.toUnsignedInt(mmu.readByteData(cpu.getPCReg()));
+
+                if(Short.toUnsignedInt(cpu.getPCReg()) > 0x1400 && Short.toUnsignedInt(cpu.getPCReg()) < 0x1421)
+                    System.exit(0);
 
                 cpu.executeOpcode(opcode);
 
