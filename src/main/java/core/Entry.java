@@ -24,7 +24,7 @@ public class Entry {
 
         Intel8080 cpu = new Intel8080(mmu);
 
-        Debugger debugger = new Debugger(Debugger.RunMode.STEP_INSTRUCTIONS);
+        Debugger debugger = new Debugger(Debugger.RunMode.RUN_INSTRUCTIONS);
 
         Gpu gpu = new Gpu(cpu);
 

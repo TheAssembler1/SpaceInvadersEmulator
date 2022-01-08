@@ -17,6 +17,8 @@ public class Gpu extends JPanel{
 
     static private boolean halfScreenInterrupt = true;
 
+    //byte[] pixelBuffer = new byte[screenXResolution * screenYResolution];
+
     int availableCycles = 0;
 
     short midScreenInterrupt = 0x8;
@@ -31,12 +33,13 @@ public class Gpu extends JPanel{
         window.add(this);
         window.pack();
         window.setResizable(false);
+        window.setLocationRelativeTo(null);
         window.setVisible(true);
     }
 
     @Override
     protected void paintComponent(Graphics g){
-        super.paintComponent(g);
+        //super.paintComponent(g);
         drawScreen(g);
     }
 
@@ -55,12 +58,15 @@ public class Gpu extends JPanel{
 
                     for(int j = 0; j < 8; j++){
                         if(cpu.getBitOfByte(currentByte, j))
-                            g.setColor(Color.WHITE);
+                            g.setColor(Color.GREEN);
                         else
-                            g.setColor(Color.BLACK);
-                    }
+                            g.setColor(Color.BLUE);
 
-                    g.drawRect(i % screenXResolution, i / screenXResolution, 0, 0);
+                        int x = (i * 8 + j + 1) % screenXResolution;
+                        int y = (i * 8 + j + 1) / screenXResolution;
+
+                        g.drawRect(x, y, 1, 1);
+                    }
                 }
                 //cpu.executeOpcode(midScreenInterrupt);
             }else{
@@ -72,12 +78,15 @@ public class Gpu extends JPanel{
 
                     for(int j = 0; j < 8; j++){
                         if(cpu.getBitOfByte(currentByte, j))
-                            g.setColor(Color.WHITE);
+                            g.setColor(Color.GREEN);
                         else
-                            g.setColor(Color.BLACK);
-                    }
+                            g.setColor(Color.BLUE);
 
-                    g.drawRect(i % screenXResolution, i / screenXResolution, 0, 0);
+                        int x = (i * 8 + j + 1) % screenXResolution;
+                        int y = (i * 8 + j + 1) / screenXResolution;
+
+                        g.drawRect(x, y, 1, 1);
+                    }
                 }
                 //cpu.executeOpcode(endScreenInterrupt);
             }

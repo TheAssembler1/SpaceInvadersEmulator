@@ -71,7 +71,7 @@ public class Debugger{
 
         //NOTE::Finalizing the window and making it visible
         window.pack();
-        window.setVisible(true);
+        window.setVisible(false);
     }
 
     //NOTE::Setting initial run mode button states
