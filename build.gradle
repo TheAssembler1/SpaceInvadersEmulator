@@ -3,7 +3,6 @@ plugins {
 }
 
 application{
-    //mainClassName('core.Entry')
     getMainClass().set('core.Entry')
 }
 
