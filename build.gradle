@@ -3,7 +3,8 @@ plugins {
 }
 
 application{
-    mainClassName('core.Entry')
+    //mainClassName('core.Entry')
+    getMainClass().set('core.Entry')
 }
 
 group 'org.example'
