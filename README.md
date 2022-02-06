@@ -1,5 +1,4 @@
 # SpaceInvadersEmulator                                                                   
----
 #### Build Directions
 -- You may not neccesarily need these versions of the software but this is what I used 
 -- Try just opening in Intellij after this
