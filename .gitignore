@@ -24,7 +24,8 @@ hs_err_pid*
 replay_pid*
 
 # java build directory
-./build
+build/
 
 # Intellij directory
-./.idea
+.idea/
+
