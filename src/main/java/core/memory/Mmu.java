@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
+import core.Entry;
 
 public class Mmu {
     private final ByteBuffer memory;
@@ -36,8 +37,16 @@ public class Mmu {
         memory.put(address, value);
     }
 
+    //NOTE::loads type of rom passed int string
+    public void loadRom(Entry.RomType romType){
+        switch(romType){
+            case TEST -> loadTestRom();
+            case SPACE_INVADERS -> loadSpaceInvadersRom();
+        }
+    }
+
     //NOTE::Loads the test rom
-    public void loadTestRom(){
+    private void loadTestRom(){
         try{
             File file = new File("Roms/Intel8080Test/TEST.COM");
 
@@ -58,7 +67,7 @@ public class Mmu {
      * invaders.f 0x1000-0x17FF
      * invaders.e 0x1800-0x1FFF
      */
-    public void loadRom(){
+    private void loadSpaceInvadersRom(){
         int startOfInvadersHRom = 0x0000;
         int endOfInvadersHRom = 0x07FF;
 

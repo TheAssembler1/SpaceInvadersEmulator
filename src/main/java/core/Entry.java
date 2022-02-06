@@ -10,7 +10,16 @@ import core.gpu.Gpu;
 import debug.Debugger;
 import core.memory.Mmu;
 
+//FIXME::Pass in param to boot space-invaders.rom or intel8080test.rom
+
 public class Entry {
+    public enum RomType{
+        TEST,
+        SPACE_INVADERS
+    }
+
+    static RomType romType = RomType.SPACE_INVADERS;
+
     public static void main(String[] args) throws InterruptedException {
         /*
          * 0000-1FFF 8K ROM
@@ -19,12 +28,11 @@ public class Entry {
          * 4000- RAM mirror
          */
         Mmu mmu = new Mmu(0x4000 + 1);
-        mmu.loadTestRom();
-
-        System.out.println(mmu);
+        mmu.loadRom(romType);
 
         Debugger debugger = new Debugger(Debugger.RunMode.STEP_INSTRUCTIONS);
-        Intel8080 cpu = new Intel8080(mmu, debugger);
+
+        Intel8080 cpu = new Intel8080(mmu, debugger, romType);
 
         Gpu gpu = new Gpu(cpu);
 

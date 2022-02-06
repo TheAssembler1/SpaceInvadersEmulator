@@ -1,5 +1,6 @@
 package core.cpu;
 
+import core.Entry;
 import core.memory.Mmu;
 import debug.Debugger;
 
@@ -14,8 +15,8 @@ public class Intel8080 extends Intel8080Base{
 
     Opcode[] opcodes = new Opcode[0xFF + 1];
 
-    public Intel8080(Mmu mmu, Debugger debugger) {
-        super(mmu);
+    public Intel8080(Mmu mmu, Debugger debugger, Entry.RomType romType) {
+        super(mmu, romType);
 
         this.debugger = debugger;
 

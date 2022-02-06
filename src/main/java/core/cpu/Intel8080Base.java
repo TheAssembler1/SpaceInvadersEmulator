@@ -1,5 +1,6 @@
 package core.cpu;
 
+import core.Entry;
 import core.memory.Mmu;
 
 import java.nio.ByteBuffer;
@@ -332,10 +333,14 @@ public abstract class Intel8080Base{
             "RST 7 | 1  11 | - - - - -"
     };
 
-    public Intel8080Base(Mmu mmu) {
+    public Intel8080Base(Mmu mmu, Entry.RomType romType) {
         this.mmu = mmu;
 
-        setRegisterShortValue(Register.PC, (short) 0xC1);
+        //NOTE::Setting default pc reg for different rom
+        switch(romType){
+            case TEST -> setRegisterShortValue(Register.PC, (short) 0xC1);
+            case SPACE_INVADERS -> setRegisterShortValue(Register.PC, (short) 0x00);
+        }
     }
 
     protected void setRegisterShortValue(Register regPair, short value) {
