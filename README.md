@@ -17,4 +17,3 @@ OS:           Linux 5.4.0-54-generic amd64
 openjdk 16.0.1 2021-04-20
 OpenJDK Runtime Environment (build 16.0.1+9-Ubuntu-120.04)
 OpenJDK 64-Bit Server VM (build 16.0.1+9-Ubuntu-120.04, mixed mode, sharing)
-
