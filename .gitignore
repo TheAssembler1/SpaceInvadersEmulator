@@ -25,3 +25,6 @@ replay_pid*
 
 # java build directory
 ./build
+
+# Intellij directory
+./.idea
